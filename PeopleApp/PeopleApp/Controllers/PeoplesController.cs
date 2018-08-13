@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using PeopleApp.DatabaseContext;
 using PeopleApp.Models;
+using PeopleApp.Users;
 
 namespace PeopleApp.Controllers
 {
@@ -16,35 +17,62 @@ namespace PeopleApp.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public IEnumerable<People> Get()
+        [HttpGet("{key}")]
+        public IEnumerable<People> Get(Guid key)
         {
-            return _context.Peoples;
-        }
-
-        [HttpPost]
-        public void Post([FromBody]People value)
-        {
-            if (value.Id == Guid.Empty)
+            try
             {
-                _context.Peoples.Add(value);
-                _context.SaveChanges();
-                return;
+                if (ListUsers.GuidList.IsLogin(key))
+                    return _context.Peoples;
+                return new List<People>();
             }
-            People people = _context.Peoples.Find(value.Id);
-            if (people == null)
-                return;
-            people.Name = value.Name;
-            people.Phone = value.Phone;
-            people.Surname = value.Surname;
-            _context.SaveChanges();
+            catch (Exception)
+            {
+                return new List<People>();
+            }
         }
 
-        [HttpDelete("{id}")]
-        public void Delete(Guid id)
+        [HttpPost("{key}")]
+        public void Post([FromBody]People value, Guid key)
         {
-            _context.Peoples.Remove(_context.Peoples.Find(id));
-            _context.SaveChanges();
+            if (!ListUsers.GuidList.IsLogin(key))
+                return;
+            try
+            {
+                if (value.Id == Guid.Empty)
+                {
+                    _context.Peoples.Add(value);
+                    _context.SaveChanges();
+                    return;
+                }
+                People people = _context.Peoples.Find(value.Id);
+                if (people == null)
+                    return;
+                people.Name = value.Name;
+                people.Phone = value.Phone;
+                people.Surname = value.Surname;
+                _context.SaveChanges();
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        [HttpPut("{key}")]
+        public void Delete([FromBody]People value, Guid key)
+        {
+            if (!ListUsers.GuidList.IsLogin(key))
+                return;
+            try
+            {
+                _context.Peoples.Remove(_context.Peoples.Find(value.Id));
+                _context.SaveChanges();
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
         }
     }
 }
