@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using Client.Key;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR.Client;
 using Newtonsoft.Json;
 using PeopleApp.Models;
 
@@ -13,10 +13,12 @@ namespace Client.ItemList
     public class PeoplesList
     {
         private string _serverAddress = "http://localhost:6881/api/peoples/" + MyKey.Key;
+        private const string HubAddress = "http://localhost:6881/Notification/";
+        private readonly HubConnection _hubConnection;
         private static readonly object Locker = new object();
         private static PeoplesList _peoplesList;
 
-        public List<People> Peoples { get; }
+        private List<People> Peoples { get; }
 
         public static PeoplesList GetPeoplesList
         {
@@ -36,13 +38,38 @@ namespace Client.ItemList
 
         private PeoplesList()
         {
+            _hubConnection = new HubConnectionBuilder().WithUrl(HubAddress).Build();
+            StartHub();
             MyKey.OnKeyChanged += ChangeKey;
             HttpClient client = new HttpClient();
             HttpResponseMessage response = client.GetAsync(_serverAddress).Result;
             List<People> data = JsonConvert.DeserializeObject<List<People>>(response.Content.ReadAsStringAsync().Result);
             Peoples = data ?? new List<People>();
         }
-        
+
+        private async void StartHub()
+        {
+            await _hubConnection.StartAsync();
+            _hubConnection.On<People>("Add", (value) =>
+            {
+                Peoples.Add(value);
+            });
+            _hubConnection.On<People>("Edit", (value) =>
+            {
+                Peoples.Remove(Peoples.Find(people => people.Id == value.Id));
+                Peoples.Add(value);
+            });
+            _hubConnection.On<People>("Delete", (value) =>
+            {
+                Peoples.Remove(value);
+            });
+        }
+
+        public List<People> GetPeoples()
+        {
+            return Peoples;
+        }
+
         private void ChangeKey()
         {
             _serverAddress = "http://localhost:6881/api/peoples/" + MyKey.Key;

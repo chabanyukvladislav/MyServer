@@ -8,56 +8,36 @@ namespace Client.Controllers
 {
     public class HomeController : Controller
     {
-        private const string HubAddress = "http://localhost:6881/Notification/";
         private const string MyHubAddress = "http://localhost:3121/Update/";
         private readonly PeoplesList _peoplesList = PeoplesList.GetPeoplesList;
-        private readonly HubConnection _hubConnection;
-        private readonly HubConnection _myHub;
+        private readonly HubConnection _hub;
 
         public HomeController()
         {
             _peoplesList.OnPeopleAdd += PeopleAdded;
             _peoplesList.OnPeopleDelete += PeopleDeleted;
-            _hubConnection = new HubConnectionBuilder().WithUrl(HubAddress).Build();
-            _myHub = new HubConnectionBuilder().WithUrl(MyHubAddress).Build();
-            MyHub();
+            _hub = new HubConnectionBuilder().WithUrl(MyHubAddress).Build();
             StartHub();
         }
 
         private void PeopleDeleted(Guid obj)
         {
-            _myHub.InvokeAsync("del", obj);
+            _hub.InvokeAsync("del", obj);
         }
 
         private void PeopleAdded(People obj)
         {
-            _myHub.InvokeAsync("add", obj);
+            _hub.InvokeAsync("add", obj);
         }
 
         private async void StartHub()
         {
-            await _hubConnection.StartAsync();
-            _hubConnection.On<People>("Add", (value) =>
-            {
-                _peoplesList.AddPeople(value);
-            });
-            _hubConnection.On<People>("Edit", (value) =>
-            {
-                _peoplesList.EditPeople(value);
-            });
-            _hubConnection.On<People>("Delete", (value) =>
-            {
-                _peoplesList.DeletePeople(value.Id);
-            });
-        }
-        private async void MyHub()
-        {
-            await _myHub.StartAsync();
+            await _hub.StartAsync();
         }
 
         public ActionResult Index()
         {
-            return View(_peoplesList.Peoples);
+            return View(_peoplesList.GetPeoples());
         }
 
         public ActionResult Create()
