@@ -101,7 +101,6 @@ namespace Client.ItemList
             HttpResponseMessage response = client.PostAsync(_serverAddress, data).Result;
             if (!response.IsSuccessStatusCode)
                 return false;
-            Peoples.Add(value);
             return true;
         }
 
@@ -122,10 +121,6 @@ namespace Client.ItemList
             HttpResponseMessage response = client.PostAsync(_serverAddress, data).Result;
             if (!response.IsSuccessStatusCode)
                 return false;
-            People val = Peoples.FirstOrDefault(people => people.Id == value.Id);
-            if (val != null)
-                Peoples.Remove(val);
-            Peoples.Add(value);
             return true;
         }
 
@@ -136,10 +131,6 @@ namespace Client.ItemList
             HttpResponseMessage response = client.PutAsync(_serverAddress, data).Result;
             if (!response.IsSuccessStatusCode)
                 return false;
-            People val = Peoples.FirstOrDefault(people => people.Id == value);
-            if (val == null)
-                return true;
-            Peoples.Remove(val);
             return true;
         }
 
