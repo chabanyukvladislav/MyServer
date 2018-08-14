@@ -29,7 +29,9 @@ namespace Client.Controllers
                 HttpResponseMessage response = client.PostAsync(ServerAddress, data).Result;
                 string key = response.Content.ReadAsStringAsync().Result.Trim('"');
                 MyKey.Key = Guid.Parse(key);
-                return RedirectToAction("Index", "Home");
+                if (MyKey.Key != Guid.Empty)
+                    return RedirectToAction("Index", "Home");
+                return View();
             }
             catch (Exception)
             {
