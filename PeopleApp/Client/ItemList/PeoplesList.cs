@@ -52,16 +52,25 @@ namespace Client.ItemList
             await _hubConnection.StartAsync();
             _hubConnection.On<People>("Add", (value) =>
             {
+                if (Peoples.All(people => people.Id == value.Id))
+                    return;
                 Peoples.Add(value);
+                OnPeopleAdd?.Invoke(value);
             });
             _hubConnection.On<People>("Edit", (value) =>
             {
+                if (Peoples.Find(people => people.Id == value.Id).Equals(value))
+                    return;
                 Peoples.Remove(Peoples.Find(people => people.Id == value.Id));
+                OnPeopleDelete?.Invoke(value.Id);
                 Peoples.Add(value);
+                OnPeopleAdd?.Invoke(value);
             });
             _hubConnection.On<People>("Delete", (value) =>
             {
+                if (Peoples.Any(people => people.Id != value.Id)) return;
                 Peoples.Remove(value);
+                OnPeopleDelete?.Invoke(value.Id);
             });
         }
 
@@ -93,7 +102,6 @@ namespace Client.ItemList
             if (!response.IsSuccessStatusCode)
                 return false;
             Peoples.Add(value);
-            OnPeopleAdd?.Invoke(value);
             return true;
         }
 
@@ -132,7 +140,6 @@ namespace Client.ItemList
             if (val == null)
                 return true;
             Peoples.Remove(val);
-            OnPeopleDelete?.Invoke(value);
             return true;
         }
 
