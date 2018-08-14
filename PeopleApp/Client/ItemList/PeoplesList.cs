@@ -18,7 +18,7 @@ namespace Client.ItemList
         private static readonly object Locker = new object();
         private static PeoplesList _peoplesList;
 
-        private List<People> Peoples { get; set; }
+        private List<People> Peoples { get; }
 
         public static PeoplesList GetPeoplesList
         {
@@ -41,7 +41,10 @@ namespace Client.ItemList
             _hubConnection = new HubConnectionBuilder().WithUrl(HubAddress).Build();
             StartHub();
             MyKey.OnKeyChanged += ChangeKey;
-            UpdateList();
+            HttpClient client = new HttpClient();
+            HttpResponseMessage response = client.GetAsync(_serverAddress).Result;
+            List<People> data = JsonConvert.DeserializeObject<List<People>>(response.Content.ReadAsStringAsync().Result);
+            Peoples = data ?? new List<People>();
         }
 
         private async void StartHub()
@@ -65,8 +68,8 @@ namespace Client.ItemList
             });
             _hubConnection.On<People>("Delete", (value) =>
             {
-                People val = Peoples.FirstOrDefault(people => people.Id == value.Id);
-                Peoples.Remove(val);
+                if (Peoples.Any(people => people.Id != value.Id)) return;
+                Peoples.Remove(value);
                 OnPeopleDelete?.Invoke(value.Id);
             });
         }
@@ -79,15 +82,6 @@ namespace Client.ItemList
         private void ChangeKey()
         {
             _serverAddress = "http://localhost:6881/api/peoples/" + MyKey.Key;
-            UpdateList();
-        }
-
-        public void UpdateList()
-        {
-            HttpClient client = new HttpClient();
-            HttpResponseMessage response = client.GetAsync(_serverAddress).Result;
-            List<People> data = JsonConvert.DeserializeObject<List<People>>(response.Content.ReadAsStringAsync().Result);
-            Peoples = data ?? new List<People>();
         }
 
         public bool AddPeople(People value)
