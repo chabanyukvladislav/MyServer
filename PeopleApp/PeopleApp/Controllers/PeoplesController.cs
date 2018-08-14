@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using PeopleApp.DatabaseContext;
+using PeopleApp.Hubs;
 using PeopleApp.Models;
 using PeopleApp.Users;
 
@@ -11,10 +13,12 @@ namespace PeopleApp.Controllers
     public class PeoplesController : Controller
     {
         private readonly Context _context;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public PeoplesController(Context context)
+        public PeoplesController(Context context, IHubContext<NotificationHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         [HttpGet("{key}")]
@@ -43,6 +47,7 @@ namespace PeopleApp.Controllers
                 {
                     _context.Peoples.Add(value);
                     _context.SaveChanges();
+                    _hubContext.Clients.All.SendAsync("Add", value);
                     return;
                 }
                 People people = _context.Peoples.Find(value.Id);
@@ -52,6 +57,7 @@ namespace PeopleApp.Controllers
                 people.Phone = value.Phone;
                 people.Surname = value.Surname;
                 _context.SaveChanges();
+                _hubContext.Clients.All.SendAsync("Edit", value);
             }
             catch (Exception)
             {
@@ -68,6 +74,7 @@ namespace PeopleApp.Controllers
             {
                 _context.Peoples.Remove(_context.Peoples.Find(value.Id));
                 _context.SaveChanges();
+                _hubContext.Clients.All.SendAsync("Delete", value);
             }
             catch (Exception)
             {

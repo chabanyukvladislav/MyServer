@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PeopleApp.DatabaseContext;
+using PeopleApp.Hubs;
 
 namespace PeopleApp
 {
@@ -22,6 +24,7 @@ namespace PeopleApp
             string connection = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<Context>(options => options.UseSqlServer(connection));
             services.AddMvc();
+            services.AddSignalR();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -32,6 +35,10 @@ namespace PeopleApp
                 app.UseDeveloperExceptionPage();
             }
             
+            app.UseSignalR(routes =>
+            {
+                routes.MapHub<NotificationHub>("/Notification");
+            });
             app.UseMvc();
         }
     }
