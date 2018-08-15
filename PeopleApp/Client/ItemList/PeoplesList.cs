@@ -12,13 +12,14 @@ namespace Client.ItemList
 {
     public class PeoplesList
     {
-        private string _serverAddress = "http://localhost:6881/api/peoples/" + MyKey.Key;
+        private const string ServerAddress = "http://localhost:6881/api/peoples";
         private const string HubAddress = "http://localhost:6881/Notification/";
+        private readonly string _key = "?token=" + MyKey.Key;
         private readonly HubConnection _hubConnection;
         private static readonly object Locker = new object();
         private static PeoplesList _peoplesList;
 
-        private List<People> Peoples { get; }
+        private List<People> Peoples { get; set; }
 
         public static PeoplesList GetPeoplesList
         {
@@ -41,36 +42,48 @@ namespace Client.ItemList
             _hubConnection = new HubConnectionBuilder().WithUrl(HubAddress).Build();
             StartHub();
             MyKey.OnKeyChanged += ChangeKey;
+            LoadPeoples();
+        }
+
+        private void LoadPeoples()
+        {
             HttpClient client = new HttpClient();
-            HttpResponseMessage response = client.GetAsync(_serverAddress).Result;
-            List<People> data = JsonConvert.DeserializeObject<List<People>>(response.Content.ReadAsStringAsync().Result);
+            HttpResponseMessage response = client.GetAsync(ServerAddress + _key).Result;
+            List<People> data = JsonConvert.DeserializeObject<List<People>>(response.Content.ReadAsStringAsync().Result, new JsonSerializerSettings()
+            {
+                Error =
+                    (sender, args) => { args.ErrorContext.Handled = true; }
+            });
             Peoples = data ?? new List<People>();
         }
 
         private async void StartHub()
         {
             await _hubConnection.StartAsync();
-            _hubConnection.On<People>("Add", (value) =>
+            _hubConnection.On<Guid>("Add", (value) =>
             {
-                if (Peoples.All(people => people.Id == value.Id))
+                if (Peoples.Any(people => people.Id == value))
                     return;
-                Peoples.Add(value);
-                OnPeopleAdd?.Invoke(value);
+                People val = GetPeople(value);
+                Peoples.Add(val);
+                OnPeopleChanged?.Invoke();
             });
-            _hubConnection.On<People>("Edit", (value) =>
+            _hubConnection.On<Guid>("Edit", (value) =>
             {
-                if (Peoples.Find(people => people.Id == value.Id).Equals(value))
+                People val = GetPeople(value);
+                People local = Peoples.FirstOrDefault(people => people.Id == value);
+                if (local == null || local.Equals(val))
                     return;
-                Peoples.Remove(Peoples.Find(people => people.Id == value.Id));
-                OnPeopleDelete?.Invoke(value.Id);
-                Peoples.Add(value);
-                OnPeopleAdd?.Invoke(value);
+                Peoples.Remove(local);
+                Peoples.Add(val);
+                OnPeopleChanged?.Invoke();
             });
-            _hubConnection.On<People>("Delete", (value) =>
+            _hubConnection.On<Guid>("Delete", (value) =>
             {
-                if (Peoples.Any(people => people.Id != value.Id)) return;
-                Peoples.Remove(value);
-                OnPeopleDelete?.Invoke(value.Id);
+                People val = Peoples.Find(people => people.Id == value);
+                if (val == null) return;
+                Peoples.Remove(val);
+                OnPeopleChanged?.Invoke();
             });
         }
 
@@ -81,7 +94,18 @@ namespace Client.ItemList
 
         private void ChangeKey()
         {
-            _serverAddress = "http://localhost:6881/api/peoples/" + MyKey.Key;
+            LoadPeoples();
+        }
+
+        public People GetPeople(Guid value)
+        {
+            HttpClient client = new HttpClient();
+            HttpResponseMessage response = client.GetAsync(ServerAddress + '/' + value + _key).Result;
+            return JsonConvert.DeserializeObject<People>(response.Content.ReadAsStringAsync().Result, new JsonSerializerSettings()
+            {
+                Error =
+                    (sender, args) => { args.ErrorContext.Handled = true; }
+            }) ?? new People();
         }
 
         public bool AddPeople(People value)
@@ -98,7 +122,7 @@ namespace Client.ItemList
                 index = json.IndexOf("null", StringComparison.Ordinal);
             }
             StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
-            HttpResponseMessage response = client.PostAsync(_serverAddress, data).Result;
+            HttpResponseMessage response = client.PostAsync(ServerAddress + _key, data).Result;
             if (!response.IsSuccessStatusCode)
                 return false;
             return true;
@@ -118,7 +142,7 @@ namespace Client.ItemList
                 index = json.IndexOf("null", StringComparison.Ordinal);
             }
             StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
-            HttpResponseMessage response = client.PostAsync(_serverAddress, data).Result;
+            HttpResponseMessage response = client.PostAsync(ServerAddress + _key, data).Result;
             if (!response.IsSuccessStatusCode)
                 return false;
             return true;
@@ -127,14 +151,12 @@ namespace Client.ItemList
         public bool DeletePeople(Guid value)
         {
             HttpClient client = new HttpClient();
-            StringContent data = new StringContent("{\"id\": \"" + value + "\"}}", Encoding.UTF8, "application/json");
-            HttpResponseMessage response = client.PutAsync(_serverAddress, data).Result;
+            HttpResponseMessage response = client.DeleteAsync(ServerAddress + '/' + value + _key).Result;
             if (!response.IsSuccessStatusCode)
                 return false;
             return true;
         }
 
-        public event Action<People> OnPeopleAdd;
-        public event Action<Guid> OnPeopleDelete;
+        public event Action OnPeopleChanged;
     }
 }

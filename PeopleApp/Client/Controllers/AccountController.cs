@@ -21,11 +21,11 @@ namespace Client.Controllers
         [HttpPost]
         public ActionResult Login(User user)
         {
-            HttpClient client = new HttpClient();
-            string json = JsonConvert.SerializeObject(user);
-            StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
             try
             {
+                HttpClient client = new HttpClient();
+                string json = JsonConvert.SerializeObject(user);
+                StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
                 HttpResponseMessage response = client.PostAsync(ServerAddress, data).Result;
                 string key = response.Content.ReadAsStringAsync().Result.Trim('"');
                 MyKey.Key = Guid.Parse(key);

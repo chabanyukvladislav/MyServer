@@ -14,20 +14,14 @@ namespace Client.Controllers
 
         public HomeController()
         {
-            _peoplesList.OnPeopleAdd += PeopleAdded;
-            _peoplesList.OnPeopleDelete += PeopleDeleted;
+            _peoplesList.OnPeopleChanged += PeopleChanged;
             _hub = new HubConnectionBuilder().WithUrl(MyHubAddress).Build();
             StartHub();
         }
 
-        private void PeopleDeleted(Guid obj)
+        private void PeopleChanged()
         {
-            _hub.InvokeAsync("del", obj);
-        }
-
-        private void PeopleAdded(People obj)
-        {
-            _hub.InvokeAsync("add", obj);
+            _hub.InvokeAsync("update");
         }
 
         private async void StartHub()

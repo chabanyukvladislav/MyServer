@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Primitives;
 using PeopleApp.DatabaseContext;
 using PeopleApp.Hubs;
 using PeopleApp.Models;
@@ -21,12 +23,13 @@ namespace PeopleApp.Controllers
             _hubContext = hubContext;
         }
 
-        [HttpGet("{key}")]
-        public IEnumerable<People> Get(Guid key)
+        [HttpGet]
+        public IEnumerable<People> Get()
         {
             try
             {
-                if (ListUsers.GuidList.IsLogin(key))
+                Request.Query.TryGetValue("token", out StringValues token);
+                if (Guid.TryParse(token, out Guid key) && ListUsers.GuidList.IsLogin(key))
                     return _context.Peoples;
                 return new List<People>();
             }
@@ -36,10 +39,27 @@ namespace PeopleApp.Controllers
             }
         }
 
-        [HttpPost("{key}")]
-        public void Post([FromBody]People value, Guid key)
+        [HttpGet("{id}")]
+        public People Get(Guid id)
         {
-            if (!ListUsers.GuidList.IsLogin(key))
+            try
+            {
+                Request.Query.TryGetValue("token", out StringValues token);
+                if (Guid.TryParse(token, out Guid key) && ListUsers.GuidList.IsLogin(key))
+                    return _context.Peoples.FirstOrDefault(people => people.Id == id);
+                return new People();
+            }
+            catch (Exception)
+            {
+                return new People();
+            }
+        }
+
+        [HttpPost]
+        public void Post([FromBody]People value)
+        {
+            Request.Query.TryGetValue("token", out StringValues token);
+            if (!Guid.TryParse(token, out Guid key) || !ListUsers.GuidList.IsLogin(key))
                 return;
             try
             {
@@ -47,7 +67,7 @@ namespace PeopleApp.Controllers
                 {
                     _context.Peoples.Add(value);
                     _context.SaveChanges();
-                    _hubContext.Clients.All.SendAsync("Add", value);
+                    _hubContext.Clients.All.SendAsync("Add", value.Id);
                     return;
                 }
                 People people = _context.Peoples.Find(value.Id);
@@ -57,7 +77,7 @@ namespace PeopleApp.Controllers
                 people.Phone = value.Phone;
                 people.Surname = value.Surname;
                 _context.SaveChanges();
-                _hubContext.Clients.All.SendAsync("Edit", value);
+                _hubContext.Clients.All.SendAsync("Edit", value.Id);
             }
             catch (Exception)
             {
@@ -65,16 +85,17 @@ namespace PeopleApp.Controllers
             }
         }
 
-        [HttpPut("{key}")]
-        public void Delete([FromBody]People value, Guid key)
+        [HttpDelete("{id}")]
+        public void Delete(Guid id)
         {
-            if (!ListUsers.GuidList.IsLogin(key))
+            Request.Query.TryGetValue("token", out StringValues token);
+            if (!Guid.TryParse(token, out Guid key) || !ListUsers.GuidList.IsLogin(key))
                 return;
             try
             {
-                _context.Peoples.Remove(_context.Peoples.Find(value.Id));
+                _context.Peoples.Remove(_context.Peoples.Find(id));
                 _context.SaveChanges();
-                _hubContext.Clients.All.SendAsync("Delete", value);
+                _hubContext.Clients.All.SendAsync("Delete", id);
             }
             catch (Exception)
             {
