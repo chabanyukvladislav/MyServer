@@ -111,6 +111,7 @@ namespace WebClient.ItemList
         public bool AddPeople(People value)
         {
             HttpClient client = new HttpClient();
+            value.Id = Guid.NewGuid();
             string json = JsonConvert.SerializeObject(value);
             int index = json.IndexOf("null", StringComparison.Ordinal);
             while (index != -1)
@@ -125,6 +126,7 @@ namespace WebClient.ItemList
             HttpResponseMessage response = client.PostAsync(ServerAddress + _key, data).Result;
             if (!response.IsSuccessStatusCode)
                 return false;
+            Peoples.Add(value);
             return true;
         }
 
@@ -145,6 +147,8 @@ namespace WebClient.ItemList
             HttpResponseMessage response = client.PostAsync(ServerAddress + _key, data).Result;
             if (!response.IsSuccessStatusCode)
                 return false;
+            Peoples.Remove(Peoples.FirstOrDefault(el => el.Id == value.Id));
+            Peoples.Add(value);
             return true;
         }
 
@@ -154,6 +158,7 @@ namespace WebClient.ItemList
             HttpResponseMessage response = client.DeleteAsync(ServerAddress + '/' + value + _key).Result;
             if (!response.IsSuccessStatusCode)
                 return false;
+            Peoples.Remove(Peoples.FirstOrDefault(el => el.Id == value));
             return true;
         }
 

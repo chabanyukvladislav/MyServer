@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -52,9 +52,9 @@ namespace WebClient.Controllers
         [AutoValidateAntiforgeryToken]
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult> Create(People value)
+        public ActionResult Create(People value)
         {
-            await Task.Run(() => _peoplesList.AddPeople(value));
+            _peoplesList.AddPeople(value);
             return RedirectToAction("Index");
         }
 
@@ -68,9 +68,9 @@ namespace WebClient.Controllers
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(Guid id, People value)
+        public ActionResult Edit(Guid id, People value)
         {
-            await Task.Run(() => _peoplesList.EditPeople(value));
+            _peoplesList.EditPeople(value);
             return RedirectToAction("Index");
         }
 
@@ -84,9 +84,9 @@ namespace WebClient.Controllers
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Delete(Guid id)
+        public ActionResult Delete(Guid id)
         {
-            await Task.Run(() => _peoplesList.DeletePeople(id));
+            _peoplesList.DeletePeople(id);
             return RedirectToAction("Index");
         }
     }
