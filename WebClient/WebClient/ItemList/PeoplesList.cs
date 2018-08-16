@@ -127,6 +127,7 @@ namespace WebClient.ItemList
             if (!response.IsSuccessStatusCode)
                 return false;
             Peoples.Add(value);
+            OnUpdate?.Invoke();
             return true;
         }
 
@@ -149,6 +150,7 @@ namespace WebClient.ItemList
                 return false;
             Peoples.Remove(Peoples.FirstOrDefault(el => el.Id == value.Id));
             Peoples.Add(value);
+            OnUpdate?.Invoke();
             return true;
         }
 
@@ -159,6 +161,7 @@ namespace WebClient.ItemList
             if (!response.IsSuccessStatusCode)
                 return false;
             Peoples.Remove(Peoples.FirstOrDefault(el => el.Id == value));
+            OnUpdate?.Invoke();
             return true;
         }
 
