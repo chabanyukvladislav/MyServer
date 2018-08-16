@@ -19,8 +19,6 @@ namespace WebClient.ItemList
         private static readonly object Locker = new object();
         private static PeoplesList _peoplesList;
 
-        public bool IsChanged { get; private set; }
-
         private List<People> Peoples { get; set; }
 
         public static PeoplesList GetPeoplesList
@@ -41,10 +39,14 @@ namespace WebClient.ItemList
 
         private PeoplesList()
         {
-            IsChanged = true;
             _hubConnection = new HubConnectionBuilder().WithUrl(HubAddress).Build();
             StartHub();
             MyKey.OnKeyChanged += ChangeKey;
+            LoadPeoples();
+        }
+
+        private void ChangeKey()
+        {
             LoadPeoples();
         }
 
@@ -69,7 +71,7 @@ namespace WebClient.ItemList
                     return;
                 People val = GetPeople(value);
                 Peoples.Add(val);
-                IsChanged = true;
+                OnUpdate?.Invoke();
             });
             _hubConnection.On<Guid>("Edit", (value) =>
             {
@@ -79,25 +81,20 @@ namespace WebClient.ItemList
                     return;
                 Peoples.Remove(local);
                 Peoples.Add(val);
-                IsChanged = true;
+                OnUpdate?.Invoke();
             });
             _hubConnection.On<Guid>("Delete", (value) =>
             {
                 People val = Peoples.Find(people => people.Id == value);
                 if (val == null) return;
                 Peoples.Remove(val);
-                IsChanged = true;
+                OnUpdate?.Invoke();
             });
         }
 
         public List<People> GetPeoples()
         {
             return Peoples;
-        }
-
-        private void ChangeKey()
-        {
-            LoadPeoples();
         }
 
         public People GetPeople(Guid value)
@@ -113,7 +110,6 @@ namespace WebClient.ItemList
 
         public bool AddPeople(People value)
         {
-            IsChanged = false;
             HttpClient client = new HttpClient();
             string json = JsonConvert.SerializeObject(value);
             int index = json.IndexOf("null", StringComparison.Ordinal);
@@ -134,7 +130,6 @@ namespace WebClient.ItemList
 
         public bool EditPeople(People value)
         {
-            IsChanged = false;
             HttpClient client = new HttpClient();
             string json = JsonConvert.SerializeObject(value);
             int index = json.IndexOf("null", StringComparison.Ordinal);
@@ -155,12 +150,13 @@ namespace WebClient.ItemList
 
         public bool DeletePeople(Guid value)
         {
-            IsChanged = false;
             HttpClient client = new HttpClient();
             HttpResponseMessage response = client.DeleteAsync(ServerAddress + '/' + value + _key).Result;
             if (!response.IsSuccessStatusCode)
                 return false;
             return true;
         }
+
+        public event Action OnUpdate;
     }
 }

@@ -11,37 +11,39 @@
 </p>
 <table class="table">
     <thead>
-    <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.Name)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Surname)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Phone)
-        </th>
-        <th></th>
-    </tr>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Surname)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Phone)
+            </th>
+            <th></th>
+        </tr>
     </thead>
     <tbody id="TBody">
-    @foreach (var item in Model)
-    {
-        <tr id="@item.Id">
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Surname)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Phone)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.Id, name = item.Name, surname = item.Surname, phone = item.Phone }) |
-                @Html.ActionLink("Delete", "Delete", new { id = item.Id, name = item.Name, surname = item.Surname, phone = item.Phone })
-            </td>
-        </tr>
-    }
+        @foreach (var item in Model)
+        {
+            <tr id="@item.Id">
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Surname)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Phone)
+                </td>
+                <td>
+                    @Html.ActionLink("Edit", "Edit", new { id = item.Id, name = item.Name, surname = item.Surname, phone = item.Phone }) |
+                    @Html.ActionLink("Delete", "Delete", new { id = item.Id, name = item.Name, surname = item.Surname, phone = item.Phone })
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+<script src="js/signalr.min.js"></script>
+<script src="js/update.js"></script>

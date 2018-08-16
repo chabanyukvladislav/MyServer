@@ -1,6 +1,12 @@
 ﻿using System;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using WebClient.Hubs;
 using WebClient.ItemList;
+using WebClient.Key;
 using WebClient.Models;
 
 namespace WebClient.Controllers
@@ -8,12 +14,35 @@ namespace WebClient.Controllers
     public class HomeController : Controller
     {
         private readonly PeoplesList _peoplesList = PeoplesList.GetPeoplesList;
+        private readonly IHubContext<UpdateHub> _myHub;
 
+        public HomeController(IHubContext<UpdateHub> hub)
+        {
+            _myHub = hub;
+            MyKey.OnKeyChanged += KeyChanged;
+            _peoplesList.OnUpdate += Update;
+        }
+
+        private void Update()
+        {
+            _myHub.Clients.All.SendAsync("Update");
+        }
+
+        private void KeyChanged()
+        {
+            if (MyKey.Key == Guid.Empty)
+                HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        }
+
+        [Authorize]
+        [HttpGet]
         public ActionResult Index()
         {
             return View(_peoplesList.GetPeoples());
         }
 
+        [Authorize]
+        [HttpGet]
         public ActionResult Create()
         {
             return View();
@@ -21,38 +50,42 @@ namespace WebClient.Controllers
 
         [AutoValidateAntiforgeryToken]
         [HttpPost]
+        [Authorize]
         public ActionResult Create(People value)
         {
-            bool result = _peoplesList.AddPeople(value);
-            while (result && !_peoplesList.IsChanged) { }
+            _peoplesList.AddPeople(value);
             return RedirectToAction("Index");
         }
 
+        [Authorize]
+        [HttpGet]
         public ActionResult Edit(People value)
         {
             return View(value);
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(Guid id, People value)
         {
-            bool result = _peoplesList.EditPeople(value);
-            while (result && !_peoplesList.IsChanged) { }
+            _peoplesList.EditPeople(value);
             return RedirectToAction("Index");
         }
 
+        [Authorize]
+        [HttpGet]
         public ActionResult Delete(People value)
         {
             return View(value);
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(Guid id)
         {
-            bool result = _peoplesList.DeletePeople(id);
-            while (result && !_peoplesList.IsChanged) { }
+            _peoplesList.DeletePeople(id);
             return RedirectToAction("Index");
         }
     }

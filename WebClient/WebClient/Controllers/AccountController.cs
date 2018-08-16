@@ -1,6 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using WebClient.Key;
@@ -12,6 +17,7 @@ namespace WebClient.Controllers
     {
         private const string ServerAddress = "http://localhost/api/account/";
 
+        [HttpGet]
         public ActionResult Login()
         {
             return View();
@@ -19,7 +25,7 @@ namespace WebClient.Controllers
 
         [AutoValidateAntiforgeryToken]
         [HttpPost]
-        public ActionResult Login(User user)
+        public async Task<ActionResult> Login(User user)
         {
             try
             {
@@ -28,13 +34,27 @@ namespace WebClient.Controllers
                 StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
                 HttpResponseMessage response = client.PostAsync(ServerAddress, data).Result;
                 string key = response.Content.ReadAsStringAsync().Result.Trim('"');
-                MyKey.Key = Guid.Parse(key);
-                return RedirectToAction("Index", "Home");
+                Guid guid = Guid.Parse(key);
+                if (guid != Guid.Empty)
+                {
+                    MyKey.Key = guid;
+                    await Authenticate(guid);
+                    return RedirectToAction("Index", "Home");
+                }
+                ModelState.AddModelError("", "Incorrect login or password");
+                return View(user);
             }
             catch (Exception)
             {
-                return View();
+                return View(user);
             }
+        }
+
+        private async Task Authenticate(Guid guid)
+        {
+            List<Claim> claims = new List<Claim> { new Claim(ClaimsIdentity.DefaultNameClaimType, guid.ToString()) };
+            ClaimsIdentity identity = new ClaimsIdentity(claims, "ApplicationCookie", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
         }
     }
 }
