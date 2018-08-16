@@ -29,5 +29,11 @@ namespace PeopleApp.Controllers
             ListUsers.GuidList.AddGuid(guid);
             return guid;
         }
+
+        [HttpPut]
+        public bool Put([FromBody] Guid guid)
+        {
+            return ListUsers.GuidList.IsLogin(guid);
+        }
     }
 }
