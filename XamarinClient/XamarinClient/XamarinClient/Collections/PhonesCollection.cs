@@ -11,7 +11,7 @@ namespace XamarinClient.Collections
 {
     public class PhonesCollection : INotifyCollectionChanged
     {
-        private const string HubAddress = "http://localhost:6881/Notification/";
+        private const string HubAddress = "http://localhost/Notification/";
         private static readonly object Locker = new object();
         private readonly HubConnection _hubConnection;
         private readonly IDataStore _dataStore;

@@ -26,7 +26,7 @@ namespace XamarinClient.ViewModels
             if (string.IsNullOrWhiteSpace(Item.Login) || string.IsNullOrWhiteSpace(Item.Password))
                 return;
             await _dataStore.LoginAsync(Item);
-            if (MyKey.IsEnable)
+            if (MyKey.IsEnable())
                 Application.Current.MainPage = new NavigationPage(new ItemsPage());
         }
     }

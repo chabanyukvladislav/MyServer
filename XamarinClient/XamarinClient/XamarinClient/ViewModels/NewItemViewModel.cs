@@ -24,7 +24,14 @@ namespace XamarinClient.ViewModels
         {
             _collection = PhonesCollection.GetPhonesCollection;
             Save = new Command(ExecuteSave);
-            Item = item;
+            People people = new People()
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Surname = item.Surname,
+                Phone = item.Phone
+            };
+            Item = people;
         }
 
         private async void ExecuteSave()

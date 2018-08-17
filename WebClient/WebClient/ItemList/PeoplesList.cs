@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using Microsoft.AspNetCore.SignalR.Client;
 using Newtonsoft.Json;
 using WebClient.Key;
@@ -20,6 +21,7 @@ namespace WebClient.ItemList
         private static PeoplesList _peoplesList;
 
         private List<People> Peoples { get; set; }
+        private bool IsWait { get; set; }
 
         public static PeoplesList GetPeoplesList
         {
@@ -68,9 +70,13 @@ namespace WebClient.ItemList
             _hubConnection.On<Guid>("Add", (value) =>
             {
                 if (Peoples.Any(people => people.Id == value))
+                {
+                    IsWait = false;
                     return;
+                }
                 People val = GetPeople(value);
                 Peoples.Add(val);
+                IsWait = false;
                 OnUpdate?.Invoke();
             });
             _hubConnection.On<Guid>("Edit", (value) =>
@@ -94,6 +100,11 @@ namespace WebClient.ItemList
 
         public List<People> GetPeoples()
         {
+            while (IsWait)
+            {
+                Thread.Sleep(10);
+            }
+
             return Peoples;
         }
 
@@ -111,7 +122,6 @@ namespace WebClient.ItemList
         public bool AddPeople(People value)
         {
             HttpClient client = new HttpClient();
-            value.Id = Guid.NewGuid();
             string json = JsonConvert.SerializeObject(value);
             int index = json.IndexOf("null", StringComparison.Ordinal);
             while (index != -1)
@@ -126,8 +136,7 @@ namespace WebClient.ItemList
             HttpResponseMessage response = client.PostAsync(ServerAddress + _key, data).Result;
             if (!response.IsSuccessStatusCode)
                 return false;
-            Peoples.Add(value);
-            OnUpdate?.Invoke();
+            IsWait = true;
             return true;
         }
 

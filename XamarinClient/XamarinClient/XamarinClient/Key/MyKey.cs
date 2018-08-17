@@ -16,16 +16,18 @@ namespace XamarinClient.Key
             {
                 _key = value;
                 _date = DateTime.Now;
-                IsEnable = true;
                 OnKeyChanged?.Invoke();
             }
         }
 
-        public static bool IsEnable { get; private set; }
-
         static MyKey()
         {
             Worker();
+        }
+
+        public static bool IsEnable()
+        {
+            return _key != Guid.Empty;
         }
 
         private static async void Worker()
@@ -37,7 +39,6 @@ namespace XamarinClient.Key
                     Thread.Sleep(1000 * 60 * 60 * 24);
                     if (_date.Day + 7 < DateTime.Now.Day)
                     {
-                        IsEnable = false;
                         _key = Guid.Empty;
                     }
                 }

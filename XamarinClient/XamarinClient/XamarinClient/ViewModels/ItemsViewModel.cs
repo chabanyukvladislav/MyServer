@@ -13,6 +13,7 @@ namespace XamarinClient.ViewModels
     {
         private readonly PhonesCollection _collection;
         private ObservableCollection<People> _items;
+        private People _people;
 
         public ObservableCollection<People> Items
         {
@@ -24,7 +25,15 @@ namespace XamarinClient.ViewModels
             }
         }
 
-        public People ItemSelected { get; set; }
+        public People ItemSelected
+        {
+            get => _people;
+            set
+            {
+                _people = value;
+                OnPropertyChanged(nameof(ItemSelected));
+            }
+        }
         public ICommand AddItem { get; }
         public ICommand RemoveItem { get; }
         public ICommand UpdateItem { get; }
@@ -44,10 +53,8 @@ namespace XamarinClient.ViewModels
         }
         private async void ExecuteAddItem()
         {
-            People item = ItemSelected;
             ItemSelected = null;
             await Application.Current.MainPage.Navigation.PushAsync(new NewItemPage());
-            ItemSelected = item;
         }
         private async void ExecuteRemoveItem()
         {
@@ -65,7 +72,6 @@ namespace XamarinClient.ViewModels
             People item = ItemSelected;
             ItemSelected = null;
             await Application.Current.MainPage.Navigation.PushAsync(new NewItemPage(item));
-            ItemSelected = item;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

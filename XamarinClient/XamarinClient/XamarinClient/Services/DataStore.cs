@@ -12,8 +12,8 @@ namespace XamarinClient.Services
 {
     public class DataStore : IDataStore
     {
-        private const string ServerAddress = "http://localhost:6881/api/peoples";
-        private const string ServerAccountAddress = "http://localhost:6881/api/account";
+        private const string ServerAddress = "http://localhost/api/peoples";
+        private const string ServerAccountAddress = "http://localhost/api/account";
         private string _key = "?token=" + MyKey.Key;
         private static readonly object Locker = new object();
         private static DataStore _dataStore;

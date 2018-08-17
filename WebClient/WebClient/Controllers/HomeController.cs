@@ -39,7 +39,8 @@ namespace WebClient.Controllers
         [HttpGet]
         public ActionResult Index()
         {
-            return View(_peoplesList.GetPeoples());
+            List<People> list = _peoplesList.GetPeoples();
+            return View(list);
         }
 
         [Authorize]
