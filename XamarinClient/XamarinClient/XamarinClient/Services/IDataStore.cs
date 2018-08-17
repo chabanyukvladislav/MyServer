@@ -7,7 +7,7 @@ namespace XamarinClient.Services
 {
     public interface IDataStore
     {
-        Task LoginAsync(User user);
+        Task LoginAsync(User user, string fileName);
         Task<bool> AddItemAsync(People item);
         Task<bool> UpdateItemAsync(People item);
         Task<bool> DeleteItemAsync(Guid id);

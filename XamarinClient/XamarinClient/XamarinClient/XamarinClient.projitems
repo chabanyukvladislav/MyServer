@@ -16,6 +16,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Collections\PhonesCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DatabaseContext\Context.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Key\MyKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\People.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\User.cs" />

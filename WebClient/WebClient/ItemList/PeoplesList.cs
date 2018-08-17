@@ -13,8 +13,8 @@ namespace WebClient.ItemList
 {
     public class PeoplesList
     {
-        private const string ServerAddress = "http://localhost/api/peoples";
-        private const string HubAddress = "http://localhost/Notification/";
+        private const string ServerAddress = "http://192.168.1.19:1919/api/peoples";
+        private const string HubAddress = "http://192.168.1.19:1919/Notification/";
         private readonly string _key = "?token=" + MyKey.Key;
         private readonly HubConnection _hubConnection;
         private static readonly object Locker = new object();

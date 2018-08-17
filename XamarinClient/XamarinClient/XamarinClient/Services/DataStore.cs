@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,8 +13,8 @@ namespace XamarinClient.Services
 {
     public class DataStore : IDataStore
     {
-        private const string ServerAddress = "http://localhost/api/peoples";
-        private const string ServerAccountAddress = "http://localhost/api/account";
+        private const string ServerAddress = "http://192.168.1.19:1919/api/peoples";
+        private const string ServerAccountAddress = "http://192.168.1.19:1919/api/account";
         private string _key = "?token=" + MyKey.Key;
         private static readonly object Locker = new object();
         private static DataStore _dataStore;
@@ -46,7 +47,7 @@ namespace XamarinClient.Services
             _key = "?token=" + MyKey.Key;
         }
 
-        public async Task LoginAsync(User user)
+        public async Task LoginAsync(User user, string fileName)
         {
             await Task.Run(() =>
             {
@@ -57,7 +58,15 @@ namespace XamarinClient.Services
                     StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
                     HttpResponseMessage response = client.PostAsync(ServerAccountAddress, data).Result;
                     string key = response.Content.ReadAsStringAsync().Result.Trim('"');
-                    MyKey.Key = Guid.Parse(key);
+                    if (!Guid.TryParse(key, out Guid guid) || guid == Guid.Empty)
+                        return;
+                    MyKey.Key = guid;
+                    if(File.Exists(fileName))
+                        File.Delete(fileName);
+                    StreamWriter streamWriter = File.AppendText(fileName);
+                    streamWriter.WriteLine(guid);
+                    streamWriter.WriteLine(DateTime.Now.Day);
+                    streamWriter.Close();
                 }
                 catch (Exception)
                 {
@@ -136,7 +145,7 @@ namespace XamarinClient.Services
                         Error =
                             (sender, args) => { args.ErrorContext.Handled = true; }
                     });
-                return data ?? new List<People>();
+                return data;
             });
         }
 

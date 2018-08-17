@@ -10,8 +10,8 @@
         <StackLayout Spacing="20" Padding="15">
             <Label Text="Login" FontSize="Medium" />
             <Entry Text="{Binding Item.Login, Mode=OneWayToSource}" FontSize="Small" />
-            <Label Text="Password" FontSize="Medium" />
-            <Entry Text="{Binding Item.Password, Mode=OneWayToSource}" FontSize="Small"/>
+            <Label Text="Password" FontSize="Medium"/>
+            <Entry Text="{Binding Item.Password, Mode=OneWayToSource}" FontSize="Small" IsPassword="True"/>
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

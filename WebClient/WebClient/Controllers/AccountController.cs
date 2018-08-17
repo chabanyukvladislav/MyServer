@@ -15,7 +15,7 @@ namespace WebClient.Controllers
 {
     public class AccountController : Controller
     {
-        private const string ServerAddress = "http://localhost/api/account/";
+        private const string ServerAddress = "http://192.168.1.19:1919/api/account/";
 
         [HttpGet]
         public ActionResult Login()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using Microsoft.AspNetCore.SignalR.Client;
+using XamarinClient.DatabaseContext;
 using XamarinClient.Key;
 using XamarinClient.Models;
 using XamarinClient.Services;
@@ -11,8 +12,9 @@ namespace XamarinClient.Collections
 {
     public class PhonesCollection : INotifyCollectionChanged
     {
-        private const string HubAddress = "http://localhost/Notification/";
+        private const string HubAddress = "http://192.168.1.19:1919/Notification/";
         private static readonly object Locker = new object();
+        private readonly Context _context;
         private readonly HubConnection _hubConnection;
         private readonly IDataStore _dataStore;
         private static PhonesCollection _phonesCollection;
@@ -39,6 +41,7 @@ namespace XamarinClient.Collections
 
         private PhonesCollection()
         {
+            _context = new Context();
             _dataStore = DataStore.GetDataStore;
             _hubConnection = new HubConnectionBuilder().WithUrl(HubAddress).Build();
             StartHub();
@@ -49,6 +52,9 @@ namespace XamarinClient.Collections
         private async void UpdateCollection()
         {
             Peoples = await _dataStore.GetItemsAsync();
+            _context.Peoples.RemoveRange(_context.Peoples);
+            _context.Peoples.AddRange(Peoples);
+            _context.SaveChanges();
             OnCollectionChanged(NotifyCollectionChangedAction.Reset, null);
         }
 
@@ -60,6 +66,8 @@ namespace XamarinClient.Collections
                 if (Peoples.Any(people => people.Id == value)) return;
                 People val = GetPeople(value);
                 Peoples.Add(val);
+                _context.Peoples.Add(val);
+                _context.SaveChanges();
                 OnCollectionChanged(NotifyCollectionChangedAction.Add, val);
             });
             _hubConnection.On<Guid>("Edit", (value) =>
@@ -68,8 +76,11 @@ namespace XamarinClient.Collections
                 People local = Peoples.FirstOrDefault(people => people.Id == value);
                 if (local == null || local.Equals(val)) return;
                 Peoples.Remove(local);
+                _context.Peoples.Remove(local);
                 OnCollectionChanged(NotifyCollectionChangedAction.Remove, local);
                 Peoples.Add(val);
+                _context.Peoples.Add(val);
+                _context.SaveChanges();
                 OnCollectionChanged(NotifyCollectionChangedAction.Add, val);
             });
             _hubConnection.On<Guid>("Delete", (value) =>
@@ -77,6 +88,8 @@ namespace XamarinClient.Collections
                 People val = Peoples.Find(people => people.Id == value);
                 if (val == null) return;
                 Peoples.Remove(val);
+                _context.Peoples.Remove(val);
+                _context.SaveChanges();
                 OnCollectionChanged(NotifyCollectionChangedAction.Remove, val);
             });
         }
