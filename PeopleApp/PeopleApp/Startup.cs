@@ -33,7 +33,7 @@ namespace PeopleApp
             {
                 app.UseDeveloperExceptionPage();
             }
-            
+
             app.UseSignalR(routes =>
             {
                 routes.MapHub<NotificationHub>("/Notification");

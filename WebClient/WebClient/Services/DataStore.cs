@@ -1,23 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using XamarinClient.Key;
-using XamarinClient.Models;
+using WebClient.Models;
 
-[assembly: Xamarin.Forms.Dependency(typeof(XamarinClient.Services.DataStore))]
-namespace XamarinClient.Services
+namespace WebClient.Services
 {
     public class DataStore : IDataStore
     {
         private const string ServerAddress = "http://192.168.1.19:1919/api/peoples";
-        private const string ServerAccountAddress = "http://192.168.1.19:1919/api/account";
-        private string _key = "?token=" + MyKey.Key;
         private static readonly object Locker = new object();
         private static DataStore _dataStore;
+        private readonly HttpClient _client;
+        private HttpResponseMessage _response;
 
         public static IDataStore GetDataStore
         {
@@ -39,47 +36,13 @@ namespace XamarinClient.Services
 
         private DataStore()
         {
-            MyKey.OnKeyChanged += KeyChanged;
-        }
-
-        private void KeyChanged()
-        {
-            _key = "?token=" + MyKey.Key;
-        }
-
-        public async Task LoginAsync(User user, string fileName)
-        {
-            await Task.Run(() =>
-            {
-                try
-                {
-                    HttpClient client = new HttpClient();
-                    string json = JsonConvert.SerializeObject(user);
-                    StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
-                    HttpResponseMessage response = client.PostAsync(ServerAccountAddress, data).Result;
-                    string key = response.Content.ReadAsStringAsync().Result.Trim('"');
-                    if (!Guid.TryParse(key, out Guid guid) || guid == Guid.Empty)
-                        return;
-                    MyKey.Key = guid;
-                    if(File.Exists(fileName))
-                        File.Delete(fileName);
-                    StreamWriter streamWriter = File.AppendText(fileName);
-                    streamWriter.WriteLine(guid);
-                    streamWriter.WriteLine(DateTime.Now.Day);
-                    streamWriter.Close();
-                }
-                catch (Exception)
-                {
-                    // ignored
-                }
-            });
+            _client = new HttpClient();
         }
 
         public async Task<bool> AddItemAsync(People item)
         {
             return await Task.Run(() =>
             {
-                HttpClient client = new HttpClient();
                 string json = JsonConvert.SerializeObject(item);
                 int index = json.IndexOf("null", StringComparison.Ordinal);
                 while (index != -1)
@@ -91,8 +54,8 @@ namespace XamarinClient.Services
                     index = json.IndexOf("null", StringComparison.Ordinal);
                 }
                 StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
-                HttpResponseMessage response = client.PostAsync(ServerAddress + _key, data).Result;
-                if (!response.IsSuccessStatusCode)
+                _response = _client.PostAsync(ServerAddress, data).Result;
+                if (!_response.IsSuccessStatusCode)
                     return false;
                 return true;
             });
@@ -102,7 +65,6 @@ namespace XamarinClient.Services
         {
             return await Task.Run(() =>
             {
-                HttpClient client = new HttpClient();
                 string json = JsonConvert.SerializeObject(item);
                 int index = json.IndexOf("null", StringComparison.Ordinal);
                 while (index != -1)
@@ -114,8 +76,8 @@ namespace XamarinClient.Services
                     index = json.IndexOf("null", StringComparison.Ordinal);
                 }
                 StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
-                HttpResponseMessage response = client.PostAsync(ServerAddress + _key, data).Result;
-                if (!response.IsSuccessStatusCode)
+                _response = _client.PostAsync(ServerAddress, data).Result;
+                if (!_response.IsSuccessStatusCode)
                     return false;
                 return true;
             });
@@ -125,9 +87,8 @@ namespace XamarinClient.Services
         {
             return await Task.Run(() =>
             {
-                HttpClient client = new HttpClient();
-                HttpResponseMessage response = client.DeleteAsync(ServerAddress + '/' + id + _key).Result;
-                if (!response.IsSuccessStatusCode)
+                _response = _client.DeleteAsync(ServerAddress + '/' + id).Result;
+                if (!_response.IsSuccessStatusCode)
                     return false;
                 return true;
             });
@@ -137,10 +98,9 @@ namespace XamarinClient.Services
         {
             return await Task.Run(() =>
             {
-                HttpClient client = new HttpClient();
-                HttpResponseMessage response = client.GetAsync(ServerAddress + _key).Result;
+                _response = _client.GetAsync(ServerAddress).Result;
                 List<People> data = JsonConvert.DeserializeObject<List<People>>(
-                    response.Content.ReadAsStringAsync().Result, new JsonSerializerSettings()
+                    _response.Content.ReadAsStringAsync().Result, new JsonSerializerSettings()
                     {
                         Error =
                             (sender, args) => { args.ErrorContext.Handled = true; }
@@ -153,9 +113,8 @@ namespace XamarinClient.Services
         {
             return await Task.Run(() =>
             {
-                HttpClient client = new HttpClient();
-                HttpResponseMessage response = client.GetAsync(ServerAddress + '/' + id + _key).Result;
-                return JsonConvert.DeserializeObject<People>(response.Content.ReadAsStringAsync().Result, new JsonSerializerSettings()
+                _response = _client.GetAsync(ServerAddress + '/' + id).Result;
+                return JsonConvert.DeserializeObject<People>(_response.Content.ReadAsStringAsync().Result, new JsonSerializerSettings()
                 {
                     Error =
                         (sender, args) => { args.ErrorContext.Handled = true; }

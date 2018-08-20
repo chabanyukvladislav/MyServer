@@ -24,7 +24,6 @@ namespace XamarinClient.ViewModels
                 OnPropertyChanged(nameof(Items));
             }
         }
-
         public People ItemSelected
         {
             get => _people;
@@ -34,6 +33,7 @@ namespace XamarinClient.ViewModels
                 OnPropertyChanged(nameof(ItemSelected));
             }
         }
+
         public ICommand AddItem { get; }
         public ICommand RemoveItem { get; }
         public ICommand UpdateItem { get; }

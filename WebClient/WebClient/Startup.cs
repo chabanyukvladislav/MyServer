@@ -19,11 +19,6 @@ namespace WebClient
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(options =>
-                {
-                    options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");
-                });
             services.AddSignalR();
             services.AddMvc();
         }
@@ -42,7 +37,6 @@ namespace WebClient
             }
 
             app.UseStaticFiles();
-            app.UseAuthentication();
             app.UseSignalR(routes =>
             {
                 routes.MapHub<UpdateHub>("/update");
