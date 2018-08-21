@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using XamarinClient.Collections;
 using XamarinClient.Enum;
 using XamarinClient.Models;
 
@@ -53,6 +55,26 @@ namespace XamarinClient.Services
                     return false;
                 }
             }
+        }
+
+        public async Task<Result> Synchronized()
+        {
+            return await Task.Run(async () =>
+            {
+                try
+                {
+                    foreach (People value in Synchronizer.GetItems())
+                    {
+                        await _dataStore.AddItemAsync(value);
+                    }
+                    Synchronizer.Clear();
+                    return new Result() { IsSuccess = true };
+                }
+                catch (Exception)
+                {
+                    return new Result() { IsSuccess = false, Message = ErrorTypes.Unknown };
+                }
+            });
         }
 
         public async Task<Result> AddItemAsync(People item)

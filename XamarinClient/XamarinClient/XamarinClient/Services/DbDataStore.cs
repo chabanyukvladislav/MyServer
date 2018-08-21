@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using XamarinClient.Collections;
 using XamarinClient.DatabaseContext;
 using XamarinClient.Enum;
 using XamarinClient.Models;
@@ -40,14 +40,20 @@ namespace XamarinClient.Services
 
         public bool IsConnect => true;
 
-        public Task<Result> AddItemAsync(People item)
+        public async Task<Result> Synchronized()
         {
-            return Task.Run(() =>
+            return await Task.Run(() => new Result() { IsSuccess = true });
+        }
+
+        public async Task<Result> AddItemAsync(People item)
+        {
+            return await Task.Run(() =>
             {
                 try
                 {
                     _context.Peoples.Add(item);
                     _context.SaveChanges();
+                    Synchronizer.AddItem(item);
                     return new Result() { IsSuccess = true };
                 }
                 catch (Exception)
@@ -57,9 +63,9 @@ namespace XamarinClient.Services
             });
         }
 
-        public Task<Result> UpdateItemAsync(People item)
+        public async Task<Result> UpdateItemAsync(People item)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 try
                 {
@@ -70,6 +76,7 @@ namespace XamarinClient.Services
                     val.Phone = item.Phone;
                     val.Surname = item.Surname;
                     _context.SaveChanges();
+                    Synchronizer.AddItem(item);
                     return new Result() { IsSuccess = true };
                 }
                 catch (Exception)
@@ -79,9 +86,9 @@ namespace XamarinClient.Services
             });
         }
 
-        public Task<Result> DeleteItemAsync(Guid id)
+        public async Task<Result> DeleteItemAsync(Guid id)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 try
                 {
@@ -99,9 +106,9 @@ namespace XamarinClient.Services
             });
         }
 
-        public Task<List<People>> GetItemsAsync()
+        public async Task<List<People>> GetItemsAsync()
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 try
                 {
@@ -114,9 +121,9 @@ namespace XamarinClient.Services
             });
         }
 
-        public Task<People> GetItemAsync(Guid id)
+        public async Task<People> GetItemAsync(Guid id)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 try
                 {
@@ -132,9 +139,9 @@ namespace XamarinClient.Services
             });
         }
 
-        public Task<People> GetItemAsync(People value)
+        public async Task<People> GetItemAsync(People value)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 try
                 {

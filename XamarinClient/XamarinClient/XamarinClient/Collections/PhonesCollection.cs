@@ -90,6 +90,7 @@ namespace XamarinClient.Collections
             {
                 await _hubConnection.StartAsync();
                 _dataStore = ServerDataStore.GetDataStore;
+                await _dataStore.Synchronized();
                 UpdateCollection();
                 IsConnect();
                 _hubConnection.On<Guid>("Add", (value) =>
@@ -144,7 +145,8 @@ namespace XamarinClient.Collections
         {
             await _dataStore.AddItemAsync(item);
             if (!(_dataStore is DbDataStore)) return;
-            People val = ((DbDataStore)_dataStore).GetItemAsync(item).Result;
+            DbDataStore dbds = (DbDataStore) _dataStore;
+            People val = await dbds.GetItemAsync(item);
             if (val.Equals(new People())) return;
             Peoples.Add(val);
             CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, val));
