@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -39,7 +38,7 @@ namespace XamarinClient.Services
 
         private ServerDataStore()
         {
-            _client = new HttpClient();
+            _client = new HttpClient {Timeout = TimeSpan.FromSeconds(10)};
         }
 
         public bool IsConnect
@@ -57,27 +56,40 @@ namespace XamarinClient.Services
             }
         }
 
-        public async Task<Result> Synchronized()
+        public async Task<bool> Synchronized()
         {
             return await Task.Run(async () =>
             {
                 try
                 {
-                    foreach (People value in Synchronizer.GetItems())
+                    foreach (LocalAction value in Synchronizer.GetItems())
                     {
-                        await _dataStore.AddItemAsync(value);
+                        switch (value.Type)
+                        {
+                            case TypeOfActions.Add:
+                                await AddItemAsync(value.People);
+                                break;
+                            case TypeOfActions.Edit:
+                                await UpdateItemAsync(value.People);
+                                break;
+                            case TypeOfActions.Delete:
+                                await DeleteItemAsync(value.People.Id);
+                                break;
+                            default:
+                                return false;
+                        }
                     }
                     Synchronizer.Clear();
-                    return new Result() { IsSuccess = true };
+                    return true;
                 }
                 catch (Exception)
                 {
-                    return new Result() { IsSuccess = false, Message = ErrorTypes.Unknown };
+                    return false;
                 }
             });
         }
 
-        public async Task<Result> AddItemAsync(People item)
+        public async Task<bool> AddItemAsync(People item)
         {
             return await Task.Run(() =>
             {
@@ -96,17 +108,17 @@ namespace XamarinClient.Services
                     StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
                     _response = _client.PostAsync(ServerAddress, data).Result;
                     if (!_response.IsSuccessStatusCode)
-                        return new Result() { IsSuccess = false, Message = ErrorTypes.NotSuccessCode };
-                    return new Result() { IsSuccess = true };
+                        return false;
+                    return true;
                 }
                 catch (Exception)
                 {
-                    return new Result() { IsSuccess = false, Message = ErrorTypes.Unknown };
+                    return false;
                 }
             });
         }
 
-        public async Task<Result> UpdateItemAsync(People item)
+        public async Task<bool> UpdateItemAsync(People item)
         {
             return await Task.Run(() =>
             {
@@ -125,18 +137,18 @@ namespace XamarinClient.Services
                     StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
                     _response = _client.PostAsync(ServerAddress, data).Result;
                     if (!_response.IsSuccessStatusCode)
-                        return new Result() { IsSuccess = false, Message = ErrorTypes.NotSuccessCode };
-                    return new Result() { IsSuccess = true };
+                        return false;
+                    return true;
                 }
                 catch (Exception)
                 {
-                    return new Result() { IsSuccess = false, Message = ErrorTypes.Unknown };
+                    return false;
                 }
 
             });
         }
 
-        public async Task<Result> DeleteItemAsync(Guid id)
+        public async Task<bool> DeleteItemAsync(Guid id)
         {
             return await Task.Run(() =>
             {
@@ -144,12 +156,12 @@ namespace XamarinClient.Services
                 {
                     _response = _client.DeleteAsync(ServerAddress + '/' + id).Result;
                     if (!_response.IsSuccessStatusCode)
-                        return new Result() { IsSuccess = false, Message = ErrorTypes.NotSuccessCode };
-                    return new Result() { IsSuccess = true };
+                        return false;
+                    return true;
                 }
                 catch (Exception)
                 {
-                    return new Result() { IsSuccess = false, Message = ErrorTypes.Unknown };
+                    return false;
                 }
             });
         }

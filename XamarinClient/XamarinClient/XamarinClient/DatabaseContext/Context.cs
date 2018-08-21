@@ -18,6 +18,7 @@ namespace XamarinClient.DatabaseContext
         }
 
         public DbSet<People> Peoples { get; set; }
+        public DbSet<LocalAction> Local { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

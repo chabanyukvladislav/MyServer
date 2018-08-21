@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using XamarinClient.Collections;
 using XamarinClient.DatabaseContext;
-using XamarinClient.Enum;
 using XamarinClient.Models;
 
 namespace XamarinClient.Services
@@ -40,12 +39,25 @@ namespace XamarinClient.Services
 
         public bool IsConnect => true;
 
-        public async Task<Result> Synchronized()
+        public async Task<bool> Synchronized()
         {
-            return await Task.Run(() => new Result() { IsSuccess = true });
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    _context.Peoples.RemoveRange(_context.Peoples);
+                    _context.Peoples.AddRange(PhonesCollection.GetPhonesCollection.GetCollection());
+                    _context.SaveChanges();
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            });
         }
 
-        public async Task<Result> AddItemAsync(People item)
+        public async Task<bool> AddItemAsync(People item)
         {
             return await Task.Run(() =>
             {
@@ -54,16 +66,16 @@ namespace XamarinClient.Services
                     _context.Peoples.Add(item);
                     _context.SaveChanges();
                     Synchronizer.AddItem(item);
-                    return new Result() { IsSuccess = true };
+                    return true;
                 }
                 catch (Exception)
                 {
-                    return new Result() { IsSuccess = false, Message = ErrorTypes.DbError };
+                    return false;
                 }
             });
         }
 
-        public async Task<Result> UpdateItemAsync(People item)
+        public async Task<bool> UpdateItemAsync(People item)
         {
             return await Task.Run(() =>
             {
@@ -71,22 +83,22 @@ namespace XamarinClient.Services
                 {
                     People val = _context.Peoples.FirstOrDefault(el => el.Id == item.Id);
                     if (val == null)
-                        return new Result() { IsSuccess = false, Message = ErrorTypes.NotFoundElement };
+                        return false;
                     val.Name = item.Name;
                     val.Phone = item.Phone;
                     val.Surname = item.Surname;
                     _context.SaveChanges();
-                    Synchronizer.AddItem(item);
-                    return new Result() { IsSuccess = true };
+                    Synchronizer.EditItem(item);
+                    return true;
                 }
                 catch (Exception)
                 {
-                    return new Result() { IsSuccess = false, Message = ErrorTypes.DbError };
+                    return false;
                 }
             });
         }
 
-        public async Task<Result> DeleteItemAsync(Guid id)
+        public async Task<bool> DeleteItemAsync(Guid id)
         {
             return await Task.Run(() =>
             {
@@ -94,14 +106,15 @@ namespace XamarinClient.Services
                 {
                     People val = _context.Peoples.FirstOrDefault(el => el.Id == id);
                     if (val == null)
-                        return new Result() { IsSuccess = false, Message = ErrorTypes.NotFoundElement };
+                        return false;
                     _context.Peoples.Remove(val);
                     _context.SaveChanges();
-                    return new Result() { IsSuccess = true };
+                    Synchronizer.DeleteItem(val);
+                    return true;
                 }
                 catch (Exception)
                 {
-                    return new Result() { IsSuccess = false, Message = ErrorTypes.DbError };
+                    return false;
                 }
             });
         }

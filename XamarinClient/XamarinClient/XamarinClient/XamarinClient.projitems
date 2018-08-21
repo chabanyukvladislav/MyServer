@@ -18,9 +18,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\PhonesCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\Synchronizer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DatabaseContext\Context.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Enum\ErrorTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Enum\TypeOfActions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\Result.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\LocalAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\People.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\DbDataStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\ServerDataStore.cs" />
