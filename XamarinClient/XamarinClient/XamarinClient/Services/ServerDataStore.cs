@@ -12,7 +12,7 @@ namespace XamarinClient.Services
 {
     public class ServerDataStore : IDataStore
     {
-        private const string ServerAddress = "http://192.168.1.19:1919/api/peoples";
+        private const string ServerAddress = "http://vlad191100.server.com/api/peoples";
         private static readonly object Locker = new object();
         private static ServerDataStore _dataStore;
         private readonly HttpClient _client;

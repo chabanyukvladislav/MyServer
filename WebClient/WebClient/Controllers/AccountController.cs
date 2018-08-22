@@ -16,7 +16,7 @@ namespace WebClient.Controllers
 {
     public class AccountController : Controller
     {
-        private const string ServerAddress = "http://192.168.1.19:1919/api/account";
+        private const string ServerAddress = "http://vlad191100.server.com/api/account";
         private readonly HttpClient _client;
         private HttpResponseMessage _response;
 
