@@ -33,14 +33,17 @@ namespace WebClient.Services
                 return _dataStore;
             }
         }
+        public static string UserId { get; set; }
 
         private DataStore()
         {
+            UserId = "";
             _client = new HttpClient();
         }
 
         public async Task<bool> AddItemAsync(People item)
         {
+            _client.DefaultRequestHeaders.Add("UserId", UserId);
             return await Task.Run(() =>
             {
                 string json = JsonConvert.SerializeObject(item);
@@ -63,6 +66,7 @@ namespace WebClient.Services
 
         public async Task<bool> UpdateItemAsync(People item)
         {
+            _client.DefaultRequestHeaders.Add("UserId", UserId);
             return await Task.Run(() =>
             {
                 string json = JsonConvert.SerializeObject(item);
@@ -85,6 +89,7 @@ namespace WebClient.Services
 
         public async Task<bool> DeleteItemAsync(Guid id)
         {
+            _client.DefaultRequestHeaders.Add("UserId", UserId);
             return await Task.Run(() =>
             {
                 _response = _client.DeleteAsync(ServerAddress + '/' + id).Result;
@@ -96,6 +101,7 @@ namespace WebClient.Services
 
         public async Task<List<People>> GetItemsAsync()
         {
+            _client.DefaultRequestHeaders.Add("UserId", UserId);
             return await Task.Run(() =>
             {
                 _response = _client.GetAsync(ServerAddress).Result;
@@ -111,6 +117,7 @@ namespace WebClient.Services
 
         public async Task<People> GetItemAsync(Guid id)
         {
+            _client.DefaultRequestHeaders.Add("UserId", UserId);
             return await Task.Run(() =>
             {
                 _response = _client.GetAsync(ServerAddress + '/' + id).Result;

@@ -7,6 +7,8 @@ namespace PeopleApp.DatabaseContext
     {
         public DbSet<People> Peoples { get; set; }
 
+        public DbSet<User> Users { get; set; }
+
         public Context(DbContextOptions<Context> options) : base(options)
         {
             Database.EnsureCreated();

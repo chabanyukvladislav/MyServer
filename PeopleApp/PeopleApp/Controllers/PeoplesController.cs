@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using PeopleApp.Attributes;
 using PeopleApp.DatabaseContext;
 using PeopleApp.Hubs;
 using PeopleApp.Models;
@@ -22,6 +23,7 @@ namespace PeopleApp.Controllers
         }
 
         [HttpGet]
+        [Authorized]
         public IEnumerable<People> Get()
         {
             try
@@ -35,6 +37,7 @@ namespace PeopleApp.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorized]
         public People Get(Guid id)
         {
             try
@@ -48,6 +51,7 @@ namespace PeopleApp.Controllers
         }
 
         [HttpPost]
+        [Authorized]
         public void Post([FromBody]People value)
         {
             try
@@ -75,6 +79,7 @@ namespace PeopleApp.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorized]
         public void Delete(Guid id)
         {
             try
