@@ -28,7 +28,8 @@ namespace PeopleApp.Controllers
         {
             try
             {
-                return _context.Peoples;
+                string userId = HttpContext.Request.Headers["UserId"];
+                return _context.Peoples.Where(el => el.User.Equals(_context.Users.FirstOrDefault(us => us.UserId == userId)));
             }
             catch (Exception)
             {
@@ -42,11 +43,12 @@ namespace PeopleApp.Controllers
         {
             try
             {
-                return _context.Peoples.FirstOrDefault(people => people.Id == id);
+                string userId = HttpContext.Request.Headers["UserId"];
+                return _context.Peoples.FirstOrDefault(people => people.Id == id && people.User.UserId == userId);
             }
             catch (Exception)
             {
-                return new People();
+                return null;
             }
         }
 
@@ -56,6 +58,8 @@ namespace PeopleApp.Controllers
         {
             try
             {
+                string userId = HttpContext.Request.Headers["UserId"];
+                value.User = _context.Users.FirstOrDefault(user => user.UserId == userId);
                 if (value.Id == Guid.Empty)
                 {
                     _context.Peoples.Add(value);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,7 +11,8 @@ namespace WebClient.Services
 {
     public class DataStore : IDataStore
     {
-        private const string ServerAddress = "http://vlad191100.server.com/api/peoples";
+        //private const string ServerAddress = "http://vlad191100.server.com/api/peoples";
+        private const string ServerAddress = "http://localhost:6881/api/peoples";
         private static readonly object Locker = new object();
         private static DataStore _dataStore;
         private readonly HttpClient _client;
@@ -33,7 +35,7 @@ namespace WebClient.Services
                 return _dataStore;
             }
         }
-        public static string UserId { get; set; }
+        public string UserId { get; set; }
 
         private DataStore()
         {
@@ -43,8 +45,7 @@ namespace WebClient.Services
 
         public async Task<bool> AddItemAsync(People item)
         {
-            _client.DefaultRequestHeaders.Add("UserId", UserId);
-            return await Task.Run(() =>
+            return await Task.Run(async () =>
             {
                 string json = JsonConvert.SerializeObject(item);
                 int index = json.IndexOf("null", StringComparison.Ordinal);
@@ -57,17 +58,16 @@ namespace WebClient.Services
                     index = json.IndexOf("null", StringComparison.Ordinal);
                 }
                 StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
-                _response = _client.PostAsync(ServerAddress, data).Result;
-                if (!_response.IsSuccessStatusCode)
-                    return false;
-                return true;
+                _client.DefaultRequestHeaders.Add("UserId", UserId);
+                _response = await _client.PostAsync(ServerAddress, data);
+                _client.DefaultRequestHeaders.Remove("UserId");
+                return _response.IsSuccessStatusCode;
             });
         }
 
         public async Task<bool> UpdateItemAsync(People item)
         {
-            _client.DefaultRequestHeaders.Add("UserId", UserId);
-            return await Task.Run(() =>
+            return await Task.Run(async () =>
             {
                 string json = JsonConvert.SerializeObject(item);
                 int index = json.IndexOf("null", StringComparison.Ordinal);
@@ -80,31 +80,31 @@ namespace WebClient.Services
                     index = json.IndexOf("null", StringComparison.Ordinal);
                 }
                 StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
-                _response = _client.PostAsync(ServerAddress, data).Result;
-                if (!_response.IsSuccessStatusCode)
-                    return false;
-                return true;
+                _client.DefaultRequestHeaders.Add("UserId", UserId);
+                _response = await _client.PostAsync(ServerAddress, data);
+                _client.DefaultRequestHeaders.Remove("UserId");
+                return _response.IsSuccessStatusCode;
             });
         }
 
         public async Task<bool> DeleteItemAsync(Guid id)
         {
-            _client.DefaultRequestHeaders.Add("UserId", UserId);
-            return await Task.Run(() =>
+            return await Task.Run(async () =>
             {
-                _response = _client.DeleteAsync(ServerAddress + '/' + id).Result;
-                if (!_response.IsSuccessStatusCode)
-                    return false;
-                return true;
+                _client.DefaultRequestHeaders.Add("UserId", UserId);
+                _response = await _client.DeleteAsync(ServerAddress + '/' + id);
+                _client.DefaultRequestHeaders.Remove("UserId");
+                return _response.IsSuccessStatusCode;
             });
         }
 
         public async Task<List<People>> GetItemsAsync()
         {
-            _client.DefaultRequestHeaders.Add("UserId", UserId);
-            return await Task.Run(() =>
+            return await Task.Run(async () =>
             {
-                _response = _client.GetAsync(ServerAddress).Result;
+                _client.DefaultRequestHeaders.Add("UserId", UserId);
+                _response = await _client.GetAsync(ServerAddress);
+                _client.DefaultRequestHeaders.Remove("UserId");
                 List<People> data = JsonConvert.DeserializeObject<List<People>>(
                     _response.Content.ReadAsStringAsync().Result, new JsonSerializerSettings()
                     {
@@ -117,15 +117,16 @@ namespace WebClient.Services
 
         public async Task<People> GetItemAsync(Guid id)
         {
-            _client.DefaultRequestHeaders.Add("UserId", UserId);
-            return await Task.Run(() =>
+            return await Task.Run(async () =>
             {
-                _response = _client.GetAsync(ServerAddress + '/' + id).Result;
+                _client.DefaultRequestHeaders.Add("UserId", UserId);
+                _response = await _client.GetAsync(ServerAddress + '/' + id);
+                _client.DefaultRequestHeaders.Remove("UserId");
                 return JsonConvert.DeserializeObject<People>(_response.Content.ReadAsStringAsync().Result, new JsonSerializerSettings()
                 {
                     Error =
                         (sender, args) => { args.ErrorContext.Handled = true; }
-                }) ?? new People();
+                });
             });
         }
     }

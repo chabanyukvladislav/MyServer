@@ -1,46 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using WebClient.Collections;
-using WebClient.Hubs;
 using WebClient.Models;
-using WebClient.Services;
 
 namespace WebClient.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly PhonesCollection _peoplesList;
-        private readonly IHubContext<UpdateHub> _myHub;
-
-        public HomeController(IHubContext<UpdateHub> hub)
-        {
-            _peoplesList = PhonesCollection.GetPhonesCollection;
-            _myHub = hub;
-            _peoplesList.CollectionChanged += Update;
-        }
-
-        private void Update(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            _myHub.Clients.All.SendAsync("Update");
-        }
-
         [HttpGet]
         [Authorize]
         public ActionResult Index()
         {
-            //DataStore.UserId = User.Claims.FirstOrDefault(el => el.Type == "UserId")?.Value ?? "";
-            //_peoplesList.UpdateCollection();
-            while (_peoplesList.IsChanged)
+            string userId = User.Claims.FirstOrDefault(el => el.Type == "UserId")?.Value ?? "";
+            if (!PhonesCollection.PeoplesListDictionary.ContainsKey(userId))
+            {
+                return RedirectToAction("Relogin", "Account");
+            }
+
+            while (PhonesCollection.PeoplesListDictionary[userId].IsChanged)
             {
                 Thread.Sleep(10);
             }
-            List<People> list = _peoplesList.GetCollection();
+            List<People> list = PhonesCollection.PeoplesListDictionary[userId].GetCollection() ?? new List<People>();
             return View(list);
         }
 
@@ -56,8 +41,12 @@ namespace WebClient.Controllers
         [Authorize]
         public ActionResult Create(People value)
         {
-            //DataStore.UserId = User.Claims.FirstOrDefault(el => el.Type == "UserId")?.Value ?? "";
-            _peoplesList.AddPhone(value);
+            string userId = User.Claims.FirstOrDefault(el => el.Type == "UserId")?.Value ?? "";
+            if (!PhonesCollection.PeoplesListDictionary.ContainsKey(userId))
+            {
+                return RedirectToAction("Relogin", "Account");
+            }
+            PhonesCollection.PeoplesListDictionary[userId].AddPhone(value);
             return RedirectToAction("Index");
         }
 
@@ -73,8 +62,12 @@ namespace WebClient.Controllers
         [Authorize]
         public ActionResult Edit(Guid id, People value)
         {
-            //DataStore.UserId = User.Claims.FirstOrDefault(el => el.Type == "UserId")?.Value ?? "";
-            _peoplesList.EditPhone(value);
+            string userId = User.Claims.FirstOrDefault(el => el.Type == "UserId")?.Value ?? "";
+            if (!PhonesCollection.PeoplesListDictionary.ContainsKey(userId))
+            {
+                return RedirectToAction("Relogin", "Account");
+            }
+            PhonesCollection.PeoplesListDictionary[userId].EditPhone(value);
             return RedirectToAction("Index");
         }
 
@@ -90,8 +83,12 @@ namespace WebClient.Controllers
         [Authorize]
         public ActionResult Delete(Guid id)
         {
-            //DataStore.UserId = User.Claims.FirstOrDefault(el => el.Type == "UserId")?.Value ?? "";
-            _peoplesList.RemovePhone(id);
+            string userId = User.Claims.FirstOrDefault(el => el.Type == "UserId")?.Value ?? "";
+            if (!PhonesCollection.PeoplesListDictionary.ContainsKey(userId))
+            {
+                return RedirectToAction("Relogin", "Account");
+            }
+            PhonesCollection.PeoplesListDictionary[userId].RemovePhone(id);
             return RedirectToAction("Index");
         }
     }

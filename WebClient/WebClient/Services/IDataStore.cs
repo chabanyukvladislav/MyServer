@@ -7,6 +7,7 @@ namespace WebClient.Services
 {
     public interface IDataStore
     {
+        string UserId { get; set; }
         Task<bool> AddItemAsync(People item);
         Task<bool> UpdateItemAsync(People item);
         Task<bool> DeleteItemAsync(Guid id);

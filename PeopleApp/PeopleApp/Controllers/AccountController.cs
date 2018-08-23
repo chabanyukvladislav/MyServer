@@ -19,7 +19,8 @@ namespace PeopleApp.Controllers
     public class AccountController : Controller
     {
         private const string TokenServer = "https://vlad191100.eu.auth0.com/oauth/token";
-        private const string RedirectUrl = "http://vlad191100.client.com/Account/Login";
+        //private const string RedirectUrl = "http://vlad191100.client.com/Account/Login";
+        private const string RedirectUrl = "http://localhost:3668/Account/Login";
         private const string ClientSecret = "t5p_QaMMlJ-BOOJQd_EAnSGvLCmnopfeNeqEMVkeyWCK3_UZW7gF8_UVSaaI-fLF";
         private const string ClientId = "Y2uaVJba1Ei6mYa7EaZiLajzlwOTo6jl";
         private readonly Context _context;
