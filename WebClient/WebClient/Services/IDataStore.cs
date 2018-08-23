@@ -7,11 +7,10 @@ namespace WebClient.Services
 {
     public interface IDataStore
     {
-        string UserId { get; set; }
-        Task<bool> AddItemAsync(People item);
-        Task<bool> UpdateItemAsync(People item);
-        Task<bool> DeleteItemAsync(Guid id);
-        Task<List<People>> GetItemsAsync();
-        Task<People> GetItemAsync(Guid id);
+        Task<bool> AddItemAsync(People item, string userId);
+        Task<bool> UpdateItemAsync(People item, string userId);
+        Task<bool> DeleteItemAsync(Guid id, string userId);
+        Task<List<People>> GetItemsAsync(string userId);
+        Task<People> GetItemAsync(Guid id, string userId);
     }
 }

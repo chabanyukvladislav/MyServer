@@ -18,8 +18,8 @@ namespace WebClient.Controllers
 {
     public class AccountController : Controller
     {
-        //private const string ServerAddress = "http://vlad191100.server.com/api/account";
-        private const string ServerAddress = "http://localhost:6881/api/account";
+        private const string ServerAddress = "http://185.247.21.82:9090/api/account";
+        //private const string ServerAddress = "http://localhost:6881/api/account";
         private readonly IHubContext<UpdateHub> _myHub;
         private readonly HttpClient _client;
         //private readonly IDataStore _dataStore;
@@ -61,9 +61,11 @@ namespace WebClient.Controllers
             string userId = User.Claims.FirstOrDefault(el => el.Type == "UserId")?.Value;
             if (userId == null)
                 return RedirectToAction("Index", "Home");
-            _client.DefaultRequestHeaders.Add("UserId", userId);
-            if (!bool.Parse(await (await _client.GetAsync(ServerAddress)).Content.ReadAsStringAsync()))
-                return RedirectToAction("Index", "Home");
+            //_client.DefaultRequestHeaders.Add("UserId", userId);
+            //HttpResponseMessage response = await _client.GetAsync(ServerAddress);
+            //string result = await response.Content.ReadAsStringAsync();
+            //if (!bool.Parse(result))
+            //    return RedirectToAction("Index", "Home");
             PhonesCollection.PeoplesListDictionary.Remove(userId);
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index", "Home");

@@ -19,8 +19,8 @@ namespace PeopleApp.Controllers
     public class AccountController : Controller
     {
         private const string TokenServer = "https://vlad191100.eu.auth0.com/oauth/token";
-        //private const string RedirectUrl = "http://vlad191100.client.com/Account/Login";
-        private const string RedirectUrl = "http://localhost:3668/Account/Login";
+        private const string RedirectUrl = "http://185.247.21.82:8080/Account/Login";
+        //private const string RedirectUrl = "http://localhost:3668/Account/Login";
         private const string ClientSecret = "t5p_QaMMlJ-BOOJQd_EAnSGvLCmnopfeNeqEMVkeyWCK3_UZW7gF8_UVSaaI-fLF";
         private const string ClientId = "Y2uaVJba1Ei6mYa7EaZiLajzlwOTo6jl";
         private readonly Context _context;
@@ -43,25 +43,25 @@ namespace PeopleApp.Controllers
             return answearToken;
         }
 
-        [HttpGet]
-        public bool Logout()
-        {
-            try
-            {
-                if (!Request.Headers.TryGetValue("UserId", out StringValues userId))
-                    return false;
-                User user = _context.Users.FirstOrDefault(us => us.UserId == userId);
-                if (user == null)
-                    return true;
-                _context.Users.Remove(user);
-                _context.SaveChanges();
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
+        //[HttpGet]
+        //public bool Logout()
+        //{
+        //    try
+        //    {
+        //        if (!Request.Headers.TryGetValue("UserId", out StringValues userId))
+        //            return false;
+        //        User user = _context.Users.FirstOrDefault(us => us.UserId == userId);
+        //        if (user == null)
+        //            return true;
+        //        _context.Users.Remove(user);
+        //        _context.SaveChanges();
+        //        return true;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return false;
+        //    }
+        //}
 
         private void GetToken()
         {

@@ -44,7 +44,6 @@ namespace XamarinClient.Collections
             if (!_dataStore.IsConnect)
                 _dataStore = DbDataStore.GetDataStore;
             _hubConnection = new HubConnectionBuilder().WithUrl(HubAddress).Build();
-            //_hubConnection.HandshakeTimeout = TimeSpan.FromSeconds(1);
             StartHub();
             UpdateCollection();
         }
@@ -75,7 +74,7 @@ namespace XamarinClient.Collections
 
         private async void UpdateCollection()
         {
-            Peoples = await _dataStore.GetItemsAsync();
+            Peoples = await _dataStore.GetItemsAsync() ?? new List<People>();
             OnCollectionChanged(NotifyCollectionChangedAction.Reset, null);
         }
 

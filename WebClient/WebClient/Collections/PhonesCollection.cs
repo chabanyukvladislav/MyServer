@@ -13,8 +13,8 @@ namespace WebClient.Collections
 {
     public class PhonesCollection
     {
-        //private const string HubAddress = "http://vlad191100.server.com/Notification/";
-        private const string HubAddress = "http://localhost:6881/Notification/";
+        private const string HubAddress = "http://185.247.21.82:9090/Notification/";
+        //private const string HubAddress = "http://localhost:6881/Notification/";
         private readonly IHubContext<UpdateHub> _myHub;
         private readonly HubConnection _hubConnection;
         private readonly IDataStore _dataStore;
@@ -41,8 +41,7 @@ namespace WebClient.Collections
         private async void UpdateCollection()
         {
             IsChanged = true;
-            _dataStore.UserId = _key;
-            List<People> list = await _dataStore.GetItemsAsync();
+            List<People> list = await _dataStore.GetItemsAsync(_key);
             Peoples = list ?? new List<People>();
             IsChanged = false;
             Update(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
@@ -53,21 +52,37 @@ namespace WebClient.Collections
             try
             {
                 await _hubConnection.StartAsync();
-                _hubConnection.On<Guid>("Add", (value) =>
+                _hubConnection.On<Guid>("Add", async (value) =>
                 {
-                    if (Peoples.Any(people => people.Id == value)) return;
-                    People val = GetPeople(value).Result;
-                    if (val == null) return;
+                    if (Peoples.Any(people => people.Id == value))
+                    {
+                        IsChanged = false;
+                        return;
+                    }
+                    People val = await GetPeople(value);
+                    if (val == null)
+                    {
+                        IsChanged = false;
+                        return;
+                    }
                     Peoples.Add(val);
                     IsChanged = false;
                     Update(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, val));
                 });
-                _hubConnection.On<Guid>("Edit", (value) =>
+                _hubConnection.On<Guid>("Edit", async (value) =>
                 {
-                    People val = GetPeople(value).Result;
-                    if (val == null) return;
+                    People val = await GetPeople(value);
+                    if (val == null)
+                    {
+                        IsChanged = false;
+                        return;
+                    }
                     People local = Peoples.FirstOrDefault(people => people.Id == value);
-                    if (local == null || local.Equals(val)) return;
+                    if (local == null || local.Equals(val))
+                    {
+                        IsChanged = false;
+                        return;
+                    }
                     Peoples.Remove(local);
                     Update(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, local));
                     Peoples.Add(val);
@@ -77,7 +92,11 @@ namespace WebClient.Collections
                 _hubConnection.On<Guid>("Delete", (value) =>
                 {
                     People val = Peoples.Find(people => people.Id == value);
-                    if (val == null) return;
+                    if (val == null)
+                    {
+                        IsChanged = false;
+                        return;
+                    }
                     Peoples.Remove(val);
                     IsChanged = false;
                     Update(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, val));
@@ -101,26 +120,22 @@ namespace WebClient.Collections
 
         public async Task<People> GetPeople(Guid id)
         {
-            _dataStore.UserId = _key;
-            return await _dataStore.GetItemAsync(id);
+            return await _dataStore.GetItemAsync(id, _key);
         }
         public async void AddPhone(People item)
         {
             IsChanged = true;
-            _dataStore.UserId = _key;
-            await _dataStore.AddItemAsync(item);
+            await _dataStore.AddItemAsync(item, _key);
         }
         public async void EditPhone(People item)
         {
             IsChanged = true;
-            _dataStore.UserId = _key;
-            await _dataStore.UpdateItemAsync(item);
+            await _dataStore.UpdateItemAsync(item, _key);
         }
         public async void RemovePhone(Guid id)
         {
             IsChanged = true;
-            _dataStore.UserId = _key;
-            await _dataStore.DeleteItemAsync(id);
+            await _dataStore.DeleteItemAsync(id, _key);
         }
     }
 }

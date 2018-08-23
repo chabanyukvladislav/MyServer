@@ -11,5 +11,6 @@ namespace WebClient.Models
         public string Surname { get; set; }
         [Required(ErrorMessage = "Must be")]
         public string Phone { get; set; }
+        public virtual User User { get; set; }
     }
 }
