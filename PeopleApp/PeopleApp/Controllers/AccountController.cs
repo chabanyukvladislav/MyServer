@@ -18,11 +18,11 @@ namespace PeopleApp.Controllers
     [Route("api/[controller]")]
     public class AccountController : Controller
     {
-        private const string TokenServer = "https://vlad191100.eu.auth0.com/oauth/token";
+        private const string TokenServer = "https://itstep1511.eu.auth0.com/oauth/token";
         private const string RedirectUrl = "http://185.247.21.82:8080/Account/Login";
         //private const string RedirectUrl = "http://localhost:3668/Account/Login";
-        private const string ClientSecret = "t5p_QaMMlJ-BOOJQd_EAnSGvLCmnopfeNeqEMVkeyWCK3_UZW7gF8_UVSaaI-fLF";
-        private const string ClientId = "Y2uaVJba1Ei6mYa7EaZiLajzlwOTo6jl";
+        private const string ClientSecret = "VJJhUoEQxOVQmjiT0DEH6d0o8F0BqQ2b7X6U3G1coMHJGzL8C9od8crSarqbTu7_";
+        private const string ClientId = "ofGlLkCt08XJ3Kgm483nDMDLm13I53Bf";
         private readonly Context _context;
         private string _token;
 

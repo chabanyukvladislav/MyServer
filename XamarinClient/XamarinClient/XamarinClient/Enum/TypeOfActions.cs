@@ -2,8 +2,6 @@
 {
     public enum TypeOfActions
     {
-        Add,
-        Edit,
-        Delete
+        Add
     }
 }

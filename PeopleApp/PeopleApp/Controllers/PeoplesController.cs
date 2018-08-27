@@ -29,6 +29,7 @@ namespace PeopleApp.Controllers
             try
             {
                 string userId = HttpContext.Request.Headers["UserId"];
+                //return _context.Peoples;
                 return _context.Peoples.Where(el => el.User.Equals(_context.Users.FirstOrDefault(us => us.UserId == userId)));
             }
             catch (Exception)
@@ -44,6 +45,7 @@ namespace PeopleApp.Controllers
             try
             {
                 string userId = HttpContext.Request.Headers["UserId"];
+                //return _context.Peoples.FirstOrDefault(people => people.Id == id);
                 return _context.Peoples.FirstOrDefault(people => people.Id == id && people.User.UserId == userId);
             }
             catch (Exception)

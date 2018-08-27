@@ -12,11 +12,11 @@ namespace XamarinClient.Collections
 {
     public class PhonesCollection : INotifyCollectionChanged
     {
-        private const string HubAddress = "http://vlad191100.server.com/Notification/";
+        private const string HubAddress = "http://185.247.21.82:9090/Notification/";
         private static readonly object Locker = new object();
-        private readonly HubConnection _hubConnection;
-        private IDataStore _dataStore;
         private static PhonesCollection _phonesCollection;
+        private HubConnection _hubConnection;
+        private IDataStore _dataStore;
 
         public static PhonesCollection GetPhonesCollection
         {
@@ -40,35 +40,61 @@ namespace XamarinClient.Collections
 
         private PhonesCollection()
         {
-            _dataStore = ServerDataStore.GetDataStore;
-            if (!_dataStore.IsConnect)
-                _dataStore = DbDataStore.GetDataStore;
-            _hubConnection = new HubConnectionBuilder().WithUrl(HubAddress).Build();
-            StartHub();
-            UpdateCollection();
+            if (ServerDataStore.GetDataStore.IsConnect)
+                ServerConnected();
+            else
+                DatabaseConnected();
         }
 
-        private async void Connect()
+        private async void ServerConnected()
         {
             await Task.Run(() =>
             {
-                Thread.Sleep(5000);
+                try
+                {
+                    _dataStore.OnDisconnect -= ServerConnected;
+                }
+                catch (Exception)
+                {
+                    // ignored
+                }
+
+                _dataStore = ServerDataStore.GetDataStore;
+                _dataStore.OnDisconnect += DatabaseConnected;
+                while (_phonesCollection == null)
+                {
+                    Thread.Sleep(10);
+                }
+                _dataStore.Synchronized();
+                _dataStore.TryConnect();
+                UpdateCollection();
+                _hubConnection = new HubConnectionBuilder().WithUrl(HubAddress).Build();
                 StartHub();
             });
         }
 
-        private async void IsConnect()
+        private async void DatabaseConnected()
         {
             await Task.Run(() =>
             {
-                bool isDo = true;
-                while (isDo)
+                try
                 {
-                    Thread.Sleep(5000);
-                    if (_dataStore.IsConnect) continue;
-                    isDo = false;
-                    StartHub();
+                    _dataStore.OnDisconnect -= DatabaseConnected;
                 }
+                catch (Exception)
+                {
+                    // ignored
+                }
+
+                _dataStore = DbDataStore.GetDataStore;
+                _dataStore.OnDisconnect += ServerConnected;
+                while (_phonesCollection == null)
+                {
+                    Thread.Sleep(10);
+                }
+                _dataStore.Synchronized();
+                _dataStore.TryConnect();
+                UpdateCollection();
             });
         }
 
@@ -83,10 +109,6 @@ namespace XamarinClient.Collections
             try
             {
                 await _hubConnection.StartAsync();
-                _dataStore = ServerDataStore.GetDataStore;
-                await _dataStore.Synchronized();
-                UpdateCollection();
-                IsConnect();
                 _hubConnection.On<Guid>("Add", (value) =>
                 {
                     if (Peoples.Any(people => people.Id == value)) return;
@@ -114,8 +136,7 @@ namespace XamarinClient.Collections
             }
             catch (Exception)
             {
-                _dataStore = DbDataStore.GetDataStore;
-                Connect();
+                // ignored
             }
         }
 
@@ -132,7 +153,7 @@ namespace XamarinClient.Collections
         {
             await _dataStore.AddItemAsync(item);
             if (!(_dataStore is DbDataStore)) return;
-            DbDataStore dbds = (DbDataStore) _dataStore;
+            DbDataStore dbds = (DbDataStore)_dataStore;
             People val = await dbds.GetItemAsync(item);
             if (val.Equals(new People())) return;
             Peoples.Add(val);

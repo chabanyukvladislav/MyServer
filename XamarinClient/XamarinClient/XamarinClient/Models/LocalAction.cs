@@ -1,11 +1,12 @@
-﻿using XamarinClient.Enum;
+﻿using System;
+using XamarinClient.Enum;
 
 namespace XamarinClient.Models
 {
-    class LocalAction
+    public class LocalAction
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public TypeOfActions Type { get; set; }
-        public People People { get; set; }
+        public virtual People People { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using XamarinClient.Collections;
@@ -12,7 +13,7 @@ namespace XamarinClient.Services
 {
     public class ServerDataStore : IDataStore
     {
-        private const string ServerAddress = "http://vlad191100.server.com/api/peoples";
+        private const string ServerAddress = "http://185.247.21.82:9090/api/peoples";
         private static readonly object Locker = new object();
         private static ServerDataStore _dataStore;
         private readonly HttpClient _client;
@@ -38,7 +39,7 @@ namespace XamarinClient.Services
 
         private ServerDataStore()
         {
-            _client = new HttpClient {Timeout = TimeSpan.FromSeconds(10)};
+            _client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
         }
 
         public bool IsConnect
@@ -56,37 +57,40 @@ namespace XamarinClient.Services
             }
         }
 
-        public async Task<bool> Synchronized()
+        public async Task TryConnect()
         {
-            return await Task.Run(async () =>
+            await Task.Run(() =>
             {
-                try
+                while (IsConnect)
                 {
-                    foreach (LocalAction value in Synchronizer.GetItems())
-                    {
-                        switch (value.Type)
-                        {
-                            case TypeOfActions.Add:
-                                await AddItemAsync(value.People);
-                                break;
-                            case TypeOfActions.Edit:
-                                await UpdateItemAsync(value.People);
-                                break;
-                            case TypeOfActions.Delete:
-                                await DeleteItemAsync(value.People.Id);
-                                break;
-                            default:
-                                return false;
-                        }
-                    }
-                    Synchronizer.Clear();
-                    return true;
+                    Thread.Sleep(1000);
                 }
-                catch (Exception)
-                {
-                    return false;
-                }
+
+                OnDisconnect?.Invoke();
             });
+        }
+
+        public async void Synchronized()
+        {
+            try
+            {
+                foreach (LocalAction value in Synchronizer.GetItems())
+                {
+                    switch (value.Type)
+                    {
+                        case TypeOfActions.Add:
+                            await AddItemAsync(value.People);
+                            Synchronizer.Clear();
+                            break;
+                        default:
+                            return;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
         }
 
         public async Task<bool> AddItemAsync(People item)
@@ -95,6 +99,7 @@ namespace XamarinClient.Services
             {
                 try
                 {
+                    item.Id = Guid.Empty;
                     string json = JsonConvert.SerializeObject(item);
                     int index = json.IndexOf("null", StringComparison.Ordinal);
                     while (index != -1)
@@ -207,5 +212,8 @@ namespace XamarinClient.Services
                 }
             });
         }
+
+
+        public event Action OnDisconnect;
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using XamarinClient.Collections;
 using XamarinClient.DatabaseContext;
 using XamarinClient.Models;
@@ -39,39 +41,44 @@ namespace XamarinClient.Services
 
         public bool IsConnect => true;
 
-        public async Task<bool> Synchronized()
+        public async Task TryConnect()
         {
-            return await Task.Run(() =>
+            await Task.Run(() =>
             {
-                try
+                IDataStore ds = ServerDataStore.GetDataStore;
+                while (!ds.IsConnect)
                 {
-                    _context.Peoples.RemoveRange(_context.Peoples);
-                    _context.Peoples.AddRange(PhonesCollection.GetPhonesCollection.GetCollection());
-                    _context.SaveChanges();
-                    return true;
+                    Thread.Sleep(1000);
                 }
-                catch (Exception)
-                {
-                    return false;
-                }
+
+                OnDisconnect?.Invoke();
             });
+        }
+
+        public void Synchronized()
+        {
+            try
+            {
+                IEnumerable<People> list = PhonesCollection.GetPhonesCollection.GetCollection() ?? new List<People>();
+                if (!list.Any())
+                    return;
+                _context.Peoples.RemoveRange(_context.Peoples);
+                _context.Peoples.AddRange(list);
+                _context.SaveChanges();
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
         }
 
         public async Task<bool> AddItemAsync(People item)
         {
             return await Task.Run(() =>
             {
-                try
-                {
-                    _context.Peoples.Add(item);
-                    _context.SaveChanges();
-                    Synchronizer.AddItem(item);
-                    return true;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
+                _context.Peoples.Add(item);
+                Synchronizer.AddItem(item);
+                return true;
             });
         }
 
@@ -79,22 +86,14 @@ namespace XamarinClient.Services
         {
             return await Task.Run(() =>
             {
-                try
-                {
-                    People val = _context.Peoples.FirstOrDefault(el => el.Id == item.Id);
-                    if (val == null)
-                        return false;
-                    val.Name = item.Name;
-                    val.Phone = item.Phone;
-                    val.Surname = item.Surname;
-                    _context.SaveChanges();
-                    Synchronizer.EditItem(item);
-                    return true;
-                }
-                catch (Exception)
-                {
+                People val = _context.Peoples.FirstOrDefault(el => el.Id == item.Id);
+                if (val == null)
                     return false;
-                }
+                val.Name = item.Name;
+                val.Phone = item.Phone;
+                val.Surname = item.Surname;
+                Synchronizer.EditItem(item);
+                return true;
             });
         }
 
@@ -109,7 +108,6 @@ namespace XamarinClient.Services
                         return false;
                     _context.Peoples.Remove(val);
                     _context.SaveChanges();
-                    Synchronizer.DeleteItem(val);
                     return true;
                 }
                 catch (Exception)
@@ -169,5 +167,8 @@ namespace XamarinClient.Services
                 }
             });
         }
+
+
+        public event Action OnDisconnect;
     }
 }

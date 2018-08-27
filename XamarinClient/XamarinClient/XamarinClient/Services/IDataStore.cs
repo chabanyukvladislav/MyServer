@@ -9,11 +9,14 @@ namespace XamarinClient.Services
     {
         bool IsConnect { get; }
 
-        Task<bool> Synchronized();
+        Task TryConnect();
+        void Synchronized();
         Task<bool> AddItemAsync(People item);
         Task<bool> UpdateItemAsync(People item);
         Task<bool> DeleteItemAsync(Guid id);
         Task<List<People>> GetItemsAsync();
         Task<People> GetItemAsync(Guid id);
+
+        event Action OnDisconnect;
     }
 }
