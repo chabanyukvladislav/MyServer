@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Xamarin.Forms;
 using XamarinClient.Collections;
 using XamarinClient.Enum;
 using XamarinClient.Models;
+using Encoding = System.Text.Encoding;
 
 namespace XamarinClient.Services
 {
@@ -18,6 +19,17 @@ namespace XamarinClient.Services
         private static ServerDataStore _dataStore;
         private readonly HttpClient _client;
         private HttpResponseMessage _response;
+        private string _userId;
+
+        public string UserId
+        {
+            get => _userId;
+            set
+            {
+                _userId = value;
+                UserIdChanged?.Invoke();
+            }
+        }
 
         public static IDataStore GetDataStore
         {
@@ -40,6 +52,15 @@ namespace XamarinClient.Services
         private ServerDataStore()
         {
             _client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+            UserId = (string)Application.Current.Properties["token"];
+            _client.DefaultRequestHeaders.Add("UserId", UserId);
+            UserIdChanged += IdChanged;
+        }
+
+        private void IdChanged()
+        {
+            _client.DefaultRequestHeaders.Remove("UserId");
+            _client.DefaultRequestHeaders.Add("UserId", UserId);
         }
 
         public bool IsConnect
@@ -48,7 +69,8 @@ namespace XamarinClient.Services
             {
                 try
                 {
-                    return _client.GetAsync(ServerAddress).Result.IsSuccessStatusCode;
+                    HttpResponseMessage response = _client.GetAsync(ServerAddress).Result;
+                    return response.IsSuccessStatusCode;
                 }
                 catch (Exception)
                 {
@@ -112,9 +134,7 @@ namespace XamarinClient.Services
                     }
                     StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
                     _response = _client.PostAsync(ServerAddress, data).Result;
-                    if (!_response.IsSuccessStatusCode)
-                        return false;
-                    return true;
+                    return _response.IsSuccessStatusCode;
                 }
                 catch (Exception)
                 {
@@ -141,9 +161,7 @@ namespace XamarinClient.Services
                     }
                     StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
                     _response = _client.PostAsync(ServerAddress, data).Result;
-                    if (!_response.IsSuccessStatusCode)
-                        return false;
-                    return true;
+                    return _response.IsSuccessStatusCode;
                 }
                 catch (Exception)
                 {
@@ -160,9 +178,7 @@ namespace XamarinClient.Services
                 try
                 {
                     _response = _client.DeleteAsync(ServerAddress + '/' + id).Result;
-                    if (!_response.IsSuccessStatusCode)
-                        return false;
-                    return true;
+                    return _response.IsSuccessStatusCode;
                 }
                 catch (Exception)
                 {
@@ -215,5 +231,6 @@ namespace XamarinClient.Services
 
 
         public event Action OnDisconnect;
+        private event Action UserIdChanged;
     }
 }

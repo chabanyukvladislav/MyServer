@@ -44,7 +44,7 @@ namespace WebClient.Controllers
             bool isCode = Request.Query.TryGetValue("code", out StringValues code);
             if (!isCode)
                 return RedirectToAction("Index");
-            HttpContent data = new StringContent("{\"code\": \"" + code + "\"}", Encoding.UTF8, "application/json");
+            HttpContent data = new StringContent("{\"code\": \"" + code + "\", \"type\": \"web\"}", Encoding.UTF8, "application/json");
             _response = _client.PostAsync(ServerAddress, data).Result;
             string token = _response.Content.ReadAsStringAsync().Result;
             JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();

@@ -9,7 +9,6 @@ namespace XamarinClient
         {
             InitializeComponent();
             AccountPage ap = new AccountPage();
-            //Current.MainPage = new NavigationPage(new ItemsPage());
             Current.MainPage = new NavigationPage(ap);
         }
     }

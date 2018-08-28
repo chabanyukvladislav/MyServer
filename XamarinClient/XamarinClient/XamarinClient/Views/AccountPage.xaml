@@ -7,7 +7,7 @@
         <ToolbarItem Text="LoginAs" Command="{Binding LoginAs}" />
     </ContentPage.ToolbarItems>
     <ContentPage.Content>
-        <StackLayout Spacing="20" Padding="15" x:Name="AccountPageContent">
+        <StackLayout Spacing="20" Padding="15">
             <Label Text="Name" FontSize="Medium" />
             <Entry Text="" FontSize="Small" />
             <Label Text="Password" FontSize="Medium" />

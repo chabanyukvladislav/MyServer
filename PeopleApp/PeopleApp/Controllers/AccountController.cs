@@ -19,10 +19,13 @@ namespace PeopleApp.Controllers
     public class AccountController : Controller
     {
         private const string TokenServer = "https://itstep1511.eu.auth0.com/oauth/token";
-        private const string RedirectUrl = "http://185.247.21.82:8080/Account/Login";
-        //private const string RedirectUrl = "http://localhost:3668/Account/Login";
-        private const string ClientSecret = "VJJhUoEQxOVQmjiT0DEH6d0o8F0BqQ2b7X6U3G1coMHJGzL8C9od8crSarqbTu7_";
-        private const string ClientId = "ofGlLkCt08XJ3Kgm483nDMDLm13I53Bf";
+        private const string WebRedirectUrl = "http://185.247.21.82:8080/Account/Login";
+        //private const string WebRedirectUrl = "http://localhost:3668/Account/Login";
+        private const string NativeRedirectUrl = "https://itstep1511.eu.auth0.com/mobile";
+        private const string WebClientSecret = "VJJhUoEQxOVQmjiT0DEH6d0o8F0BqQ2b7X6U3G1coMHJGzL8C9od8crSarqbTu7_";
+        private const string WebClientId = "ofGlLkCt08XJ3Kgm483nDMDLm13I53Bf";
+        private const string NativevClientSecret = "zcVkBGepy2aIzBjfncRz5OLMkFbJc42zB4Efje3nqNz1awGo2wVSz9sMS_f_LSDf";
+        private const string NativeClientId = "zIrxMH5oEejRE3eu7AOBajsk5Ad4BXdz";
         private readonly Context _context;
         private string _token;
 
@@ -80,13 +83,33 @@ namespace PeopleApp.Controllers
             int codeIndex = body.IndexOf("code", StringComparison.Ordinal);
             string allString = body.Remove(0, codeIndex + 8);
             string code = allString.Remove(allString.IndexOf('"'));
+            int typeIndex = body.IndexOf("type", StringComparison.Ordinal);
+            string typeString = body.Remove(0, typeIndex + 8);
+            string type = typeString.Remove(typeString.IndexOf('"'));
+            string clientId = "";
+            string clientSecret = "";
+            string redirectUrl = "";
+            switch (type)
+            {
+                case "native":
+                    clientId = NativeClientId;
+                    clientSecret = NativevClientSecret;
+                    redirectUrl = NativeRedirectUrl;
+                    break;
+                case "web":
+                    clientId = WebClientId;
+                    clientSecret = WebClientSecret;
+                    redirectUrl = WebRedirectUrl;
+                    break;
+            }
+
             var client = new HttpClient();
             string json = "{" +
                           "\"grant_type\": \"authorization_code\"," +
-                          "\"client_id\": \"" + ClientId + "\"," +
-                          "\"client_secret\": \"" + ClientSecret + "\"," +
+                          "\"client_id\": \"" + clientId + "\"," +
+                          "\"client_secret\": \"" + clientSecret + "\"," +
                           "\"code\": \"" + code + "\"," +
-                          "\"redirect_uri\": \"" + RedirectUrl + "\"" +
+                          "\"redirect_uri\": \"" + redirectUrl + "\"" +
                           "}";
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             HttpResponseMessage response = client.PostAsync(TokenServer, content).Result;
