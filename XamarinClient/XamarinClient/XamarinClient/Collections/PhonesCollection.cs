@@ -65,11 +65,11 @@ namespace XamarinClient.Collections
                 {
                     Thread.Sleep(10);
                 }
+                _hubConnection = new HubConnectionBuilder().WithUrl(HubAddress).Build();
+                StartHub();
                 _dataStore.Synchronized();
                 _dataStore.TryConnect();
                 UpdateCollection();
-                _hubConnection = new HubConnectionBuilder().WithUrl(HubAddress).Build();
-                StartHub();
             });
         }
 

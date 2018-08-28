@@ -14,11 +14,9 @@ namespace XamarinClient.ViewModels
         private const string ServerAddress = "http://185.247.21.82:9090/api/account";
         //private const string ServerAddress = "http://localhost:6881/api/account";
         private readonly HttpClient _client;
-        private readonly ServerDataStore _serverDataStore;
 
         public OAuthViewModel()
         {
-            _serverDataStore = (ServerDataStore)ServerDataStore.GetDataStore;
             _client = new HttpClient();
             WebView wv = new WebView()
             {
@@ -40,8 +38,10 @@ namespace XamarinClient.ViewModels
                 MainPage();
                 return;
             }
-            int index = e.Url.IndexOf("code", StringComparison.Ordinal);
-            string code = e.Url.Remove(0, index + 5);
+            int index = e.Url.IndexOf("?code", StringComparison.Ordinal);
+            if(index == -1)
+                return;
+            string code = e.Url.Remove(0, index + 6);
             if (code[code.Length - 1] == '#')
                 code = code.Remove(code.Length - 1);
             StringContent data = new StringContent("{\"code\": \"" + code + "\", \"type\": \"native\"}");
@@ -61,7 +61,7 @@ namespace XamarinClient.ViewModels
             }
             User user = GetUser(jwtSecurityToken);
             Application.Current.Properties.Add("token", user.UserId);
-            _serverDataStore.UserId = user.UserId;
+            ((ServerDataStore)ServerDataStore.GetDataStore).UserId = user.UserId;
             Application.Current.MainPage = new NavigationPage(new ItemsPage());
         }
 

@@ -26,8 +26,6 @@ namespace XamarinClient.Droid
 		
 		public static void UpdateIdValues()
 		{
-			global::Auth0.OidcClient.Resource.String.ApplicationName = global::XamarinClient.Droid.Resource.String.ApplicationName;
-			global::Auth0.OidcClient.Resource.String.Hello = global::XamarinClient.Droid.Resource.String.Hello;
 			global::Xamarin.Forms.Platform.Android.Resource.Attribute.actionBarSize = global::XamarinClient.Droid.Resource.Attribute.actionBarSize;
 		}
 		
@@ -3935,12 +3933,6 @@ namespace XamarinClient.Droid
 		
 		public partial class String
 		{
-			
-			// aapt resource value: 0x7f09003d
-			public const int ApplicationName = 2131296317;
-			
-			// aapt resource value: 0x7f09003c
-			public const int Hello = 2131296316;
 			
 			// aapt resource value: 0x7f090015
 			public const int abc_action_bar_home_description = 2131296277;
