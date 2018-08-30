@@ -90,7 +90,11 @@ namespace PeopleApp.Controllers
         {
             try
             {
-                _context.Peoples.Remove(_context.Peoples.Find(id));
+                string userId = Request.Headers["userId"];
+                People people = _context.Peoples.Find(id);
+                if(people.User.UserId != userId)
+                    return;
+                _context.Peoples.Remove(people);
                 _context.SaveChanges();
                 _hubContext.Clients.All.SendAsync("Delete", id);
             }

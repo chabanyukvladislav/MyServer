@@ -16,6 +16,8 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Collections\PhonesCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\UsersCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Message.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Synchronizer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DatabaseContext\Context.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Enum\TypeOfActions.cs" />
@@ -26,11 +28,21 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\ServerDataStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\IDataStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\AccountViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\AddUserViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\DialogViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ItemsViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\NewItemViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\OAuthViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\AccountPage.xaml.cs">
       <DependentUpon>AccountPage.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Views\AddUserPage.xaml.cs">
+      <DependentUpon>AddUserPage.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Views\DialogPage.xaml.cs">
+      <DependentUpon>DialogPage.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Views\ItemsPage.xaml.cs">
@@ -64,6 +76,18 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Views\OAuthPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Views\AddUserPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Views\DialogPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>

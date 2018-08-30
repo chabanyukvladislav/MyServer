@@ -15,6 +15,8 @@ namespace XamarinClient.Services
     public class ServerDataStore : IDataStore
     {
         private const string ServerAddress = "http://185.247.21.82:9090/api/peoples";
+        private const string UserServerAddress = "http://185.247.21.82:9090/api/account";
+        private const string MessageServerAddress = "http://185.247.21.82:9090/api/message";
         private static readonly object Locker = new object();
         private static ServerDataStore _dataStore;
         private readonly HttpClient _client;
@@ -31,7 +33,7 @@ namespace XamarinClient.Services
             }
         }
 
-        public static IDataStore GetDataStore
+        public static ServerDataStore GetDataStore
         {
             get
             {
@@ -229,6 +231,51 @@ namespace XamarinClient.Services
             });
         }
 
+        public async Task<List<string>> GetUsers()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    _response = _client.GetAsync(UserServerAddress).Result;
+                    List<string> data = JsonConvert.DeserializeObject<List<string>>(_response.Content.ReadAsStringAsync().Result,
+                               new JsonSerializerSettings()
+                               {
+                                   Error =
+                                       (sender, args) => { args.ErrorContext.Handled = true; }
+                               }) ?? new List<string>();
+                    return data;
+                }
+                catch (Exception)
+                {
+                    return new List<string>();
+                }
+            });
+        }
+
+        public async void SendMessage(string message, string userId)
+        {
+            await Task.Run(() =>
+            {
+                try
+                {
+                    Message mes = new Message(){ Sms = message, To = userId};
+                    string json = JsonConvert.SerializeObject(mes);
+                    int index = json.IndexOf("null", StringComparison.Ordinal);
+                    while (index != -1)
+                    {
+                        int i = json.Remove(index - 3).LastIndexOf("\"", StringComparison.Ordinal);
+                        string str1 = json.Remove(0, i + 1);
+                        string str2 = str1.Remove(str1.IndexOf("null", StringComparison.Ordinal) - 2);
+                        json = json.Remove(index - 3 - str2.Length, 8 + str2.Length);
+                        index = json.IndexOf("null", StringComparison.Ordinal);
+                    }
+                    StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
+                    _response = _client.PostAsync(MessageServerAddress, data).Result;
+                }
+                catch (Exception) { }
+            });
+        }
 
         public event Action OnDisconnect;
         private event Action UserIdChanged;

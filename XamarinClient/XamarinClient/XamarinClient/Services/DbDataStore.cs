@@ -16,7 +16,7 @@ namespace XamarinClient.Services
         private static DbDataStore _dataStore;
         private readonly Context _context;
 
-        public static IDataStore GetDataStore
+        public static DbDataStore GetDataStore
         {
             get
             {

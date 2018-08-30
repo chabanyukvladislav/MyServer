@@ -8,6 +8,7 @@
         <ToolbarItem Text="Add" Command="{Binding AddItem}"/>
         <ToolbarItem Text="Edit" Command="{Binding UpdateItem}" />
         <ToolbarItem Text="Delete" Command="{Binding RemoveItem}" />
+        <ToolbarItem Text="AddUser" Command="{Binding AddUserItem}"/>
     </ContentPage.ToolbarItems>
     <ContentPage.Content>
         <StackLayout>
@@ -19,6 +20,18 @@
                                 <Label Text="{Binding Name}" FontAttributes="Bold" LineBreakMode="NoWrap" Style="{DynamicResource ListItemTextStyle}" FontSize="16" />
                                 <Label Text="{Binding Surname}" LineBreakMode="NoWrap" Style="{DynamicResource ListItemDetailTextStyle}" FontSize="16" />
                                 <Label Text="{Binding Phone}" LineBreakMode="NoWrap" Style="{DynamicResource ListItemDetailTextStyle}" FontSize="16" />
+                            </StackLayout>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <ListView ItemsSource="{Binding UserItems}" x:Name="UsersList">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <StackLayout Padding="10" Orientation="Horizontal">
+                                <Label Text="{Binding}" FontAttributes="Bold" LineBreakMode="NoWrap" Style="{DynamicResource ListItemTextStyle}" FontSize="16" />
+                                <Button Text="Dialog" Command="{Binding Source={x:Reference Name=UsersList}, Path=BindingContext.Dialog}" CommandParameter="{Binding}"/>
                             </StackLayout>
                         </ViewCell>
                     </DataTemplate>

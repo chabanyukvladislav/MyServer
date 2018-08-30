@@ -10,6 +10,7 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
+using PeopleApp.Attributes;
 using PeopleApp.DatabaseContext;
 using PeopleApp.Models;
 
@@ -46,25 +47,12 @@ namespace PeopleApp.Controllers
             return answearToken;
         }
 
-        //[HttpGet]
-        //public bool Logout()
-        //{
-        //    try
-        //    {
-        //        if (!Request.Headers.TryGetValue("UserId", out StringValues userId))
-        //            return false;
-        //        User user = _context.Users.FirstOrDefault(us => us.UserId == userId);
-        //        if (user == null)
-        //            return true;
-        //        _context.Users.Remove(user);
-        //        _context.SaveChanges();
-        //        return true;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return false;
-        //    }
-        //}
+        [HttpGet]
+        [Authorized]
+        public List<string> GetUsers()
+        {
+            return _context.Users.Select(el => el.UserId).ToList();
+        }
 
         private void GetToken()
         {
