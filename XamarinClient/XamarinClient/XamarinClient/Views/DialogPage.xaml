@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="XamarinClient.Views.DialogPage"
-             Title="{Binding UserId}">
+             Title="{Binding UserNick}">
     <ContentPage.Content>
         <StackLayout>
             <ListView ItemsSource="{Binding Messages}">
@@ -10,17 +10,15 @@
                     <DataTemplate>
                         <ViewCell>
                             <StackLayout>
-                                <Label Text="{Binding From}" FontAttributes="Bold" Style="{DynamicResource ListItemTextStyle}" FontSize="16" />
-                                <Label Text="{Binding Sms}" Style="{DynamicResource ListItemTextStyle}" FontSize="16"  />
+                                <Label Text="{Binding FromNick}" FontAttributes="Bold" Style="{DynamicResource ListItemTextStyle}" FontSize="16" />
+                                <Label Text="{Binding Sms}" FontAttributes="None" Style="{DynamicResource ListItemTextStyle}" FontSize="16"  />
                             </StackLayout>
                         </ViewCell>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
-            <StackLayout Orientation="Horizontal">
-                <Entry Text="{Binding Message}"/>
-                <Button Text="Send" Command="{Binding Send}"/>
-            </StackLayout>
+            <Entry Text="{Binding Message}"/>
+            <Button Text="Send" Command="{Binding Send}"/>
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

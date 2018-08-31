@@ -12,6 +12,7 @@
     </ContentPage.ToolbarItems>
     <ContentPage.Content>
         <StackLayout>
+            <Label Text="All accounts" />
             <ListView x:Name="ItemsListView" ItemsSource="{Binding Items}" SelectedItem="{Binding ItemSelected, Mode=TwoWay}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
@@ -25,6 +26,7 @@
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
+            <Label Text="Users" />
             <ListView ItemsSource="{Binding UserItems}" x:Name="UsersList">
                 <ListView.ItemTemplate>
                     <DataTemplate>

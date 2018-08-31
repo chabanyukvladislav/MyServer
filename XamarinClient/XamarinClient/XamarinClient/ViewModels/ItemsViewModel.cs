@@ -3,6 +3,7 @@ using Xamarin.Forms;
 using System.ComponentModel;
 using System.Windows.Input;
 using System.Collections.Specialized;
+using System.Linq;
 using XamarinClient.Collections;
 using XamarinClient.Models;
 using XamarinClient.Views;
@@ -71,7 +72,7 @@ namespace XamarinClient.ViewModels
 
         private void ExecuteUsersRefresh(object sender, NotifyCollectionChangedEventArgs e)
         {
-            UserItems = new ObservableCollection<string>(_usersCollection.GetCollection());
+            UserItems = new ObservableCollection<string>(_usersCollection.GetCollection().Select(el => el.Nick));
         }
 
 

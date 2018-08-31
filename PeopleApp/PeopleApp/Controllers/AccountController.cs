@@ -49,9 +49,15 @@ namespace PeopleApp.Controllers
 
         [HttpGet]
         [Authorized]
-        public List<string> GetUsers()
+        public List<KeyValuePair<string, string>> GetUsers()
         {
-            return _context.Users.Select(el => el.UserId).ToList();
+            List<KeyValuePair<string, string>> list = new List<KeyValuePair<string, string>>();
+            IQueryable<User> data = _context.Users;
+            foreach (User user in data)
+            {
+                list.Add(new KeyValuePair<string, string>(user.UserId, user.Nickname));
+            }
+            return list;
         }
 
         private void GetToken()

@@ -18,6 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\PhonesCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\UsersCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Message.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\PeopleUser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Synchronizer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DatabaseContext\Context.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Enum\TypeOfActions.cs" />
