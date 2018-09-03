@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +29,8 @@ namespace XamarinClient.Services
         private readonly HttpClient _client;
         private HttpResponseMessage _response;
         private string _userId;
+
+        private static RSACryptoServiceProvider Rsa { get; set; }
 
         public string UserId
         {
@@ -335,14 +339,48 @@ namespace XamarinClient.Services
             {
                 try
                 {
-                    _response = _client.GetAsync(MessageServerAddress).Result;
-                    List<Messager> data = JsonConvert.DeserializeObject<List<Messager>>(_response.Content.ReadAsStringAsync().Result,
-                                            new JsonSerializerSettings()
-                                            {
-                                                Error =
-                                                    (sender, args) => { args.ErrorContext.Handled = true; }
-                                            }) ?? new List<Messager>();
-                    return data;
+                    RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+                    RSAParameters param = rsa.ExportParameters(false);
+
+                    string address = MessageServerAddress + "?modul=" + InString(param.Modulus) +
+                                     "&exponent=" + InString(param.Exponent);
+
+                    _response = _client.GetAsync(address).Result;
+
+                    string content = _response.Content.ReadAsStringAsync().Result;
+                    List<byte[]> responsList = JsonConvert.DeserializeObject<List<byte[]>>(content, new JsonSerializerSettings()
+                    {
+                        Error =
+                            (sender, args) => { args.ErrorContext.Handled = true; }
+                    });
+
+                    byte[] saKey = rsa.Decrypt(responsList[0], false);
+
+                    RijndaelManaged sa = new RijndaelManaged();
+                    ICryptoTransform transform = sa.CreateDecryptor(saKey, responsList[1]);
+
+                    byte[] ret = transform.TransformFinalBlock(responsList[2], 0, responsList[2].Length);
+
+                    BinaryFormatter formatter = new BinaryFormatter();
+                    MemoryStream stream = new MemoryStream();
+                    stream.Write(ret, 0, ret.Length);
+                    stream.Position = 0;
+
+                    string data = formatter.Deserialize(stream) as string;
+
+                    List<Messager> list = JsonConvert.DeserializeObject<List<Messager>>(data,
+                        new JsonSerializerSettings() { Error = (sender, args) => { args.ErrorContext.Handled = true; } }) ?? new List<Messager>();
+
+                    RSAParameters serverParam = new RSAParameters
+                    {
+                        Exponent = responsList[3],
+                        Modulus = responsList[4]
+                    };
+
+                    Rsa = new RSACryptoServiceProvider();
+                    Rsa.ImportParameters(serverParam);
+
+                    return list;
                 }
                 catch (Exception)
                 {
@@ -351,48 +389,16 @@ namespace XamarinClient.Services
             });
         }
 
-        //public async Task<List<Messager>> GetMessages()
-        //{
-        //    return await Task.Run(() =>
-        //    {
-        //        try
-        //        {
-        //            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
-        //            RSAParameters param = rsa.ExportParameters(false);
-        //            string address = MessageServerAddress + "?modul=" + InString(param.Modulus) +
-        //                             "&exponent=" + InString(param.Exponent);
-        //            _response = _client.GetAsync(address).Result;
-        //            byte[] arr = _response.Content.ReadAsByteArrayAsync().Result;
-        //            byte[] res = rsa.Decrypt(arr, false);
-        //            BinaryFormatter formatter = new BinaryFormatter();
-        //            MemoryStream stream = new MemoryStream();
-        //            stream.Write(res, 0, res.Length);
-        //            List<Messager> list = formatter.Deserialize(stream) as List<Messager>;
-        //            List<Messager> data = JsonConvert.DeserializeObject<List<Messager>>(_response.Content.ReadAsStringAsync().Result,
-        //                                      new JsonSerializerSettings()
-        //                                      {
-        //                                          Error =
-        //                                              (sender, args) => { args.ErrorContext.Handled = true; }
-        //                                      }) ?? new List<Messager>();
-        //            return data;
-        //        }
-        //        catch (Exception)
-        //        {
-        //            return new List<Messager>();
-        //        }
-        //    });
-        //}
+        private string InString(byte[] val)
+        {
+            string str = "";
+            foreach (byte b in val)
+            {
+                str += b + " ";
+            }
 
-        //private string InString(byte[] val)
-        //{
-        //    string str = "";
-        //    foreach (byte b in val)
-        //    {
-        //        str += b + " ";
-        //    }
-
-        //    return str;
-        //}
+            return str;
+        }
 
         public async Task<Messager> GetMessage(Guid id)
         {
@@ -400,12 +406,40 @@ namespace XamarinClient.Services
             {
                 try
                 {
-                    _response = _client.GetAsync(MessageServerAddress + '/' + id).Result;
-                    return JsonConvert.DeserializeObject<Messager>(_response.Content.ReadAsStringAsync().Result, new JsonSerializerSettings()
+
+                    RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+                    RSAParameters param = rsa.ExportParameters(false);
+
+                    string address = MessageServerAddress + '/' + id + "?modul=" + InString(param.Modulus) +
+                                     "&exponent=" + InString(param.Exponent);
+
+                    _response = _client.GetAsync(address).Result;
+
+                    string content = _response.Content.ReadAsStringAsync().Result;
+                    List<byte[]> responsList = JsonConvert.DeserializeObject<List<byte[]>>(content, new JsonSerializerSettings()
                     {
                         Error =
                             (sender, args) => { args.ErrorContext.Handled = true; }
-                    }) ?? new Messager();
+                    });
+
+                    byte[] saKey = rsa.Decrypt(responsList[0], false);
+
+                    RijndaelManaged sa = new RijndaelManaged();
+                    ICryptoTransform transform = sa.CreateDecryptor(saKey, responsList[1]);
+
+                    byte[] ret = transform.TransformFinalBlock(responsList[2], 0, responsList[2].Length);
+
+                    BinaryFormatter formatter = new BinaryFormatter();
+                    MemoryStream stream = new MemoryStream();
+                    stream.Write(ret, 0, ret.Length);
+                    stream.Position = 0;
+
+                    string data = formatter.Deserialize(stream) as string;
+
+                    Messager list = JsonConvert.DeserializeObject<Messager>(data,
+                                              new JsonSerializerSettings() { Error = (sender, args) => { args.ErrorContext.Handled = true; } }) ?? new Messager();
+
+                    return list;
                 }
                 catch (Exception)
                 {
@@ -431,7 +465,27 @@ namespace XamarinClient.Services
                         json = json.Remove(index - 3 - str2.Length, 8 + str2.Length);
                         index = json.IndexOf("null", StringComparison.Ordinal);
                     }
-                    StringContent data = new StringContent(json, Encoding.UTF8, "application/json");
+
+                    BinaryFormatter formatter = new BinaryFormatter();
+                    MemoryStream stream = new MemoryStream();
+                    formatter.Serialize(stream, json);
+                    byte[] bytesOfJson = stream.ToArray();
+
+                    RijndaelManaged sa = new RijndaelManaged();
+                    ICryptoTransform transform = sa.CreateEncryptor();
+                    byte[] dataMessage = transform.TransformFinalBlock(bytesOfJson, 0, bytesOfJson.Length);
+
+                    byte[] saKey = Rsa.Encrypt(sa.Key, false);
+
+                    List<byte[]> list = new List<byte[]>
+                    {
+                        saKey,
+                        sa.IV,
+                        dataMessage
+                    };
+                    string listJson = JsonConvert.SerializeObject(list);
+
+                    StringContent data = new StringContent(listJson, Encoding.UTF8, "application/json");
                     _response = _client.PostAsync(MessageServerAddress, data).Result;
                 }
                 catch (Exception) { }

@@ -2,6 +2,7 @@
 
 namespace XamarinClient.Models
 {
+    [Serializable]
     public class Messager
     {
         public Guid Id { get; set; }
